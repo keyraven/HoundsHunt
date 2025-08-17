@@ -1,4 +1,6 @@
 import scripts.rooms.room as r
+from scripts.rooms.startroom import StartRoom
+from scripts.fonts import Fonts
 import pygame
 import random
 
@@ -27,12 +29,9 @@ class Game:
         #Start Class Variables
 
         self.i = 0
-        self.rooms = []
+        self.rooms = [StartRoom()]
         self.inventory = []
         self.current_room_index = 0
-
-        self.all_sprites = pygame.sprite.Group()
-        self.all_sprites.add(Interactable(pygame.Rect(200,200,50,50), "j", lambda: self.test_interaction("SQUARE")))
 
         return
 
@@ -45,8 +44,12 @@ class Game:
     def current_room(self) -> r.Room:
         return self.rooms[self.current_room_index]
     
-    def get_all_sprites(self) -> pygame.sprite.Group:
-        return self.all_sprites
+    def draw_current_room(self, pixel_screen: pygame.Surface):
+        self.current_room.draw_room(pixel_screen)
+
+    @property 
+    def all_sprites(self) -> pygame.sprite.Group:
+        return self.current_room.all_sprites
     
     def update_all_sprites(self) -> pygame.sprite.Group:
         all_sprites = self.get_all_sprites()
