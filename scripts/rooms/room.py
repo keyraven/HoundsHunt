@@ -1,3 +1,5 @@
+import pygame
+
 class Room:
 
     def __init__(self):
@@ -6,9 +8,11 @@ class Room:
 
         }
 
-class Screen:
+class View:
     
-    def __init__(self):
+    def __init__(self, background:pygame.Surface, ):
+
+
         pass
 
 class Object:

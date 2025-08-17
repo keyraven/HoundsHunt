@@ -1,5 +1,6 @@
-import scripts.room as r
+import scripts.rooms.room as r
 import pygame
+import random
 
 class Interactable(pygame.sprite.Sprite):
 
@@ -12,6 +13,9 @@ class Interactable(pygame.sprite.Sprite):
         self.image = pygame.Surface((50,50))
         self.image.fill("BLACK")
 
+    def update(self, *args, **kwargs):
+        return super().update(*args, **kwargs)
+
 
 
 """
@@ -21,6 +25,8 @@ class Game:
     
     def __init__(self):
         #Start Class Variables
+
+        self.i = 0
         self.rooms = []
         self.inventory = []
         self.current_room_index = 0
@@ -42,6 +48,18 @@ class Game:
     def get_all_sprites(self) -> pygame.sprite.Group:
         return self.all_sprites
     
+    def update_all_sprites(self) -> pygame.sprite.Group:
+        all_sprites = self.get_all_sprites()
+        all_sprites.update()
+        return self.get_all_sprites()
+    
+    def visual_tests(self, draw_screen:pygame.Surface):
+        if self.i % 2:
+            draw_screen.fill("purple")
+        else:
+            draw_screen.fill("orange")
+        return
+
     """
     Given the x,y position of the click, processes the click and makes changes. 
     """
@@ -50,7 +68,6 @@ class Game:
             if spr.rect.collidepoint(pos):
                 spr.when_interacted()
 
-
     """
     Process some keydown. 
     """
@@ -58,7 +75,8 @@ class Game:
         return
     
     def test_interaction(self, print_string):
-        print("Interaction!!!!!!", print_string)
+        self.i += 1
+        print("Interaction!!!!!!", print_string, self.i)
 
     def test_create_interactable(self):
         test = Interactable(pygame.rect(0,3,4,6),  lambda: self.test_interaction("new string"))

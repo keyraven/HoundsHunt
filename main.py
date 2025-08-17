@@ -32,11 +32,10 @@ while True:
             pygame.quit()
             raise SystemExit
         
-    pixel_screen.fill("purple")  # Fill the display with a solid color
+    game_info.visual_tests(pixel_screen)
 
     #Rendering Logic
-    all_sprites = game_info.get_all_sprites()
-    all_sprites.update()
+    all_sprites = game_info.update_all_sprites()
     all_sprites.draw(pixel_screen)
     
     pygame.transform.scale(pixel_screen, FULL_RES, display_screen) #Scale Pixel Screen to Full Display Resolution
