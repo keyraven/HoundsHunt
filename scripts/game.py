@@ -2,21 +2,11 @@ import scripts.rooms.room as r
 from scripts.rooms.startroom import StartRoom
 from scripts.fonts import Fonts
 import pygame
+from scripts.interactable import Interactable
+from scripts.button import Button
 import random
 
-class Interactable(pygame.sprite.Sprite):
 
-    def __init__(self, rect: pygame.Rect, hotkey: str, when_interacted, *groups):
-        super().__init__(*groups)
-
-        self.rect = rect
-        self.hotkey = hotkey
-        self.when_interacted = when_interacted
-        self.image = pygame.Surface((50,50))
-        self.image.fill("BLACK")
-
-    def update(self, *args, **kwargs):
-        return super().update(*args, **kwargs)
 
 
 
@@ -44,8 +34,8 @@ class Game:
     def current_room(self) -> r.Room:
         return self.rooms[self.current_room_index]
     
-    def draw_current_room(self, pixel_screen: pygame.Surface):
-        self.current_room.draw_room(pixel_screen)
+    def draw(self, pixel_screen: pygame.Surface):
+        self.current_room.draw(pixel_screen)
 
     @property 
     def all_sprites(self) -> pygame.sprite.Group:
@@ -62,6 +52,10 @@ class Game:
         else:
             draw_screen.fill("orange")
         return
+    
+    def preprocess_events(self):
+        pass
+        
 
     """
     Given the x,y position of the click, processes the click and makes changes. 
