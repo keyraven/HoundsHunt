@@ -1,4 +1,4 @@
-name: Build Hound's Hunt with Pygbag
+name: Build Hound's Hunt with Pygbag and Upload
 on:
   push:
     branches:
@@ -7,21 +7,21 @@ on:
 
 jobs:
   build-pygbag:
-    name: Hound's Hunt
+    name: Hound's Hunt Web Build and Upload
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Checkout
+    - uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
+    - name: Build Hound's Hunt w/ Pygbag
       run: |
-            echo "Attempting to install pygbag"
-            python -m pip install pygbag
-            echo "Successfully installed pygbag"
-            echo "Attempting to build the game"
+            python -m pip install -r requirements.txt
             python -m pygbag --ume_block 0 --build main.py
-            echo "Successfully build the game and complied to WebAssembly"
+            echo "Successfully build the game and complied to WebAssembly! :)"
 
-    - name : "Upload to GitHub pages branch gh-pages"
+    - name : Upload to GitHub pages branch gh-page
       uses: JamesIves/github-pages-deploy-action@4.1.7
       with:
         branch: gh-page

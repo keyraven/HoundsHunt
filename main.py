@@ -7,7 +7,7 @@ from scripts.fonts import Fonts
 RENDER_RES = (640, 360)
 
 if sys.platform == "emscripten": # Check if the game is running is browser
-    #platform.window.canvas.style.imageRendering = "pixelated"
+    platform.window.canvas.style.imageRendering = "pixelated"
     display_screen = pygame.display.set_mode(RENDER_RES)
     print("Running is Browser!!!")
 else:

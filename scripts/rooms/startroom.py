@@ -8,7 +8,7 @@ class StartRoom(room.Room):
     def __init__(self):
         super().__init__()
         
-        self.heading_text = "Hound's Test"
+        self.heading_text = "Hound's Hunt"
         self.background = pygame.image.load("./resources/StartScreen.png")
 
     def setup(self):
