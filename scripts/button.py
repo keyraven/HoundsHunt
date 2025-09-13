@@ -13,7 +13,7 @@ class Button(Interactable):
         self.text_color = text_color if text_color is not None else pygame.Color("black")
         text = self.text_renderer.render(text, antialias, self.text_color)
         
-        pygame.Surface.blit(self.image, text, (self.rect.width/2 - text.width/2, self.rect.height/2 - text.height/2))
+        pygame.Surface.blit(self.image, text, (self.rect.width/2 - text.get_width()/2, self.rect.height/2 - text.get_height()/2))
 
     def update(self, *args, **kwargs):
         return super().update(*args, **kwargs)
