@@ -1,19 +1,17 @@
 from scripts.interactable import Interactable
 from scripts.custiom_events import CustomEvent
 import pygame
-import pygame.freetype
 
 class Button(Interactable):
 
-    def __init__(self, rect:pygame.Rect, *groups, background: pygame.Color, text:str, text_renderer:pygame.freetype.Font, text_size:int, text_color:pygame.Color = None, image:pygame.Surface = None, hotkey = None, when_interacted = None):
+    def __init__(self, rect:pygame.Rect, *groups, background: pygame.Color, text:str, text_renderer:pygame.Font, antialias:bool = True, text_color:pygame.Color = None, image:pygame.Surface = None, hotkey = None, when_interacted = None):
         super().__init__(rect, *groups, image=image, hotkey=hotkey, when_interacted=when_interacted, background=background)
 
         self.text = text
         self.text_renderer = text_renderer
 
         self.text_color = text_color if text_color is not None else pygame.Color("black")
-        self.text_size = text_size
-        text, rect = self.text_renderer.render(text, self.text_color, size=self.text_size)
+        text = self.text_renderer.render(text, antialias, self.text_color)
         
         pygame.Surface.blit(self.image, text, (self.rect.width/2 - text.width/2, self.rect.height/2 - text.height/2))
 

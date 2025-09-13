@@ -16,8 +16,9 @@ else:
     print("NOT Running in Browser ~~")
     display_screen = pygame.display.set_mode(RENDER_RES, pygame.SCALED)
 
+print("Initializing Pygame...")
 pygame.init()
-pygame.freetype.init()
+print("Pygame Initialized ...")
 Fonts.load_all_fonts()
 
 #Init all the Game Objects, and Such. 
