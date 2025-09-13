@@ -1,20 +1,23 @@
 import sys, platform
 import asyncio
 import pygame
+import pygame.freetype
 import scripts.game as game
 from scripts.fonts import Fonts
 
 RENDER_RES = (640, 360)
 
-if sys.platform == "emscripten": # Check if the game is running is browser
+if sys.platform == "emscripten": 
+    # If game is running in browser: 
     platform.window.canvas.style.imageRendering = "pixelated"
     display_screen = pygame.display.set_mode(RENDER_RES)
-    print("Running is Browser!!!")
+    print("Running in Browser ~~")
 else:
-    print("NOT Running in Browser!!!")
+    print("NOT Running in Browser ~~")
     display_screen = pygame.display.set_mode(RENDER_RES, pygame.SCALED)
 
 pygame.init()
+pygame.freetype.init()
 Fonts.load_all_fonts()
 
 #Init all the Game Objects, and Such. 
@@ -27,29 +30,20 @@ async def main():
    global display_screen
    global game_info
    
-   
-
    while True: 
-        # Pre-Process Events. 
-        game_info.preprocess_events()
+        # Process mouse location
+        game_info.handle_mouselocation(pygame.mouse.get_pos())
 
-        # Process player inputs.
+        # Process player inputs and events. 
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN: 
-                game_info.process_click(event.pos)
-
-            elif event.type == pygame.KEYDOWN:
-                game_info.process_keypress()
-
-            elif event.type == pygame.QUIT:
-                pygame.quit()
-                raise SystemExit
-            
+            game_info.handle_event(event)
+    
+        #Stuff to be run every frame
+        game_info.update()
 
         #Rendering Logic
         game_info.draw(display_screen)
         
-        #pygame.transform.scale(pixel_screen, FULL_RES, display_screen) #Scale Pixel Screen to Full Display Resolution
         pygame.display.flip()  # Refresh on-screen display
         clock.tick(60)         # wait until next frame (at 60 FPS)
         

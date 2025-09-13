@@ -6,10 +6,6 @@ from scripts.interactable import Interactable
 from scripts.button import Button
 import random
 
-
-
-
-
 """
 Holds all info regarding the game-state. 
 """
@@ -19,10 +15,13 @@ class Game:
         #Start Class Variables
 
         self.i = 0
-        self.rooms = [StartRoom()]
+        self.rooms = {
+            "start_room": StartRoom
+        }
         self.inventory = []
-        self.current_room_index = 0
-
+        self.current_room:r = None
+        self.change_room("start_room")
+        
         return
 
     """Loads game from file"""
@@ -30,17 +29,17 @@ class Game:
         print("Loading not implemented")
         return
 
-    @property
-    def current_room(self) -> r.Room:
-        return self.rooms[self.current_room_index]
-    
-    def draw(self, pixel_screen: pygame.Surface):
-        self.current_room.draw(pixel_screen)
-
     @property 
     def all_sprites(self) -> pygame.sprite.Group:
         return self.current_room.all_sprites
     
+    @property
+    def all_interactables(self) -> pygame.sprite.Group:
+        return self.current_room.all_interactables
+    
+    def draw(self, pixel_screen: pygame.Surface):
+        self.current_room.draw(pixel_screen)
+
     def update_all_sprites(self) -> pygame.sprite.Group:
         all_sprites = self.get_all_sprites()
         all_sprites.update()
@@ -53,29 +52,33 @@ class Game:
             draw_screen.fill("orange")
         return
     
-    def preprocess_events(self):
-        pass
+    def change_room(self, new_room_key:str):
+        if self.current_room is not None:
+            self.current_room.teardown()
+        self.current_room = self.rooms[new_room_key]()
+        self.current_room.setup()
+
+    def update(self):
+        self.all_sprites.update()
+
+    def handle_mouselocation(self, mouseLocation:tuple):
+        for interactable in self.all_interactables:
+            hit = interactable.check_hover_state(mouseLocation)
+            if hit:
+                break
+
+    def handle_event(self, event:pygame.Event):
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            raise SystemExit
         
+        for interactable in self.all_interactables:
+            hit = interactable.process_event(event)
+            if hit:
+                return
+            
+        self.current_room.handle_event(event)
 
-    """
-    Given the x,y position of the click, processes the click and makes changes. 
-    """
-    def process_click(self, pos: tuple) -> None:
-        for spr in self.all_sprites:
-            if spr.rect.collidepoint(pos):
-                spr.when_interacted()
-
-    """
-    Process some keydown. 
-    """
-    def process_keypress(self) -> None: 
-        return
-    
-    def test_interaction(self, print_string):
-        self.i += 1
-        print("Interaction!!!!!!", print_string, self.i)
-
-    def test_create_interactable(self):
-        test = Interactable(pygame.rect(0,3,4,6),  lambda: self.test_interaction("new string"))
-    
+        
+        
 

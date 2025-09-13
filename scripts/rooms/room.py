@@ -5,12 +5,12 @@ class Room:
 
     def __init__(self):
         self.background = None
-        self._all_sprites = pygame.sprite.Group()    
+        self.all_sprites = pygame.sprite.Group()
+        self.all_interactables = pygame.sprite.Group()
         pass
-
-    @property
-    def all_sprites(self) -> pygame.sprite.Group:
-        return self._all_sprites
+    
+    def handle_event(self, event:pygame.Event):
+        pass
 
 class View:
     

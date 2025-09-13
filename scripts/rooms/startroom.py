@@ -1,6 +1,7 @@
 import scripts.rooms.room as room
 import pygame
 from scripts.fonts import Fonts
+from scripts.button import Button
 
 
 class StartRoom(room.Room):
@@ -12,14 +13,19 @@ class StartRoom(room.Room):
         self.background = pygame.image.load("./resources/StartScreen.png")
 
     def setup(self):
-        return
+        self.start_button = Button(pygame.Rect(340, 265, 100, 40), self.all_interactables, self.all_sprites,
+                                   text="START", text_renderer=Fonts.preview, text_size=20, background=pygame.Color("orange"))
+
+    def teardown(self):
+        for sprite in self.all_sprites:
+            sprite.kill()
 
     def draw(self, draw_surface: pygame.Surface):
         # Runs every frame
         draw_surface.blit(self.background, (0,0))
-        heading_text_sur = Fonts.preview_large.render(self.heading_text, False, "black")
-        draw_surface.blit(heading_text_sur, (200, 250))
+        heading_text_sur, rect = Fonts.preview.render(self.heading_text, "black", size=50)
+        draw_surface.blit(heading_text_sur, (200, 220))
 
-        self.all_sprites
+        self.all_sprites.draw(draw_surface)
 
         
