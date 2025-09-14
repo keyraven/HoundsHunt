@@ -13,8 +13,15 @@ class StartRoom(room.Room):
         self.background = pygame.image.load("./resources/StartScreen.png")
 
     def setup(self):
+
+        start_theme = {
+            "background": "orange",
+            "hover_background": "orange2",
+            "active_background": "orangered",
+            "text_color": "black"
+        }
         self.start_button = Button(pygame.Rect(340, 270, 100, 40), self.all_interactables, self.all_sprites,
-                                   text="START", text_renderer=Fonts.preview_20, antialias=False,  background=pygame.Color("orange"))
+                                   text="START", text_renderer=Fonts.preview_20, antialias=False, theme=start_theme)
 
     def teardown(self):
         for sprite in self.all_sprites:
