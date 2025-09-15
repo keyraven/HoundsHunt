@@ -2,6 +2,7 @@ import scripts.rooms.room as room
 import pygame
 from scripts.fonts import Fonts
 from scripts.button import Button
+from scripts.custiom_events import CustomEvent
 
 
 class StartRoom(room.Room):
@@ -10,22 +11,25 @@ class StartRoom(room.Room):
         super().__init__()
         
         self.heading_text = "Hound's Hunt"
-        self.background = pygame.image.load("./resources/StartScreen.png")
+        self.background = None
 
     def setup(self):
-
+        
+        self.background = pygame.image.load("./resources/StartScreen.png")
         start_theme = {
             "background": "orange",
             "hover_background": "orange2",
             "active_background": "orangered",
             "text_color": "black"
         }
+
         self.start_button = Button(pygame.Rect(340, 270, 100, 40), self.all_interactables, self.all_sprites,
                                    text="START", text_renderer=Fonts.preview_20, antialias=False, theme=start_theme)
-
     def teardown(self):
         for sprite in self.all_sprites:
             sprite.kill()
+
+        self.background = None
 
     def draw(self, draw_surface: pygame.Surface):
         # Runs every frame
@@ -34,5 +38,12 @@ class StartRoom(room.Room):
         draw_surface.blit(heading_text_sur, (200, 220))
 
         self.all_sprites.draw(draw_surface)
+
+    def handle_event(self, event):
+        
+        if event.type == CustomEvent.BUTTON_KEYUP:
+            if event.sprite == self.start_button:
+                print("PRESS DETECTED")
+                pygame.event.post(pygame.Event(CustomEvent.CHANGE_ROOM, {"room":"room1"}))
 
         

@@ -5,8 +5,8 @@ class Room:
 
     def __init__(self):
         self.background = None
-        self.all_sprites = pygame.sprite.Group()
-        self.all_interactables = pygame.sprite.Group()
+        self.all_sprites = pygame.sprite.LayeredUpdates()
+        self.all_interactables = pygame.sprite.LayeredUpdates()
         pass
     
     def handle_event(self, event:pygame.Event):

@@ -10,6 +10,8 @@ class Button(Interactable):
         "hover_text_color": "#313131FF",
         "active_text_color": "#313131FF",
         "disabled_text_color": "#7B7B7BFF",
+        "shape": "rect",
+        "scale_image": False
     }
 
     def __init__(self, rect:pygame.Rect, *groups, text:str, text_renderer:pygame.Font, antialias:bool = True, theme:dict = None, hotkey = None):

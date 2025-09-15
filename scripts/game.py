@@ -1,9 +1,11 @@
 import scripts.rooms.room as r
 from scripts.rooms.startroom import StartRoom
+from scripts.rooms.room1 import Room1
 from scripts.fonts import Fonts
 import pygame
 from scripts.interactable import Interactable
 from scripts.button import Button
+from scripts.custiom_events import CustomEvent
 import random
 
 """
@@ -16,18 +18,21 @@ class Game:
 
         self.i = 0
         self.rooms = {
-            "start_room": StartRoom
+            "start_room": StartRoom,
+            "room1": Room1
         }
         self.inventory = []
         self.current_room:r = None
         self.change_room("start_room")
         
+        self.ui_sprites = pygame.sprite.LayeredUpdates()
+        self.ui_open = False
+        
         return
 
     """Loads game from file"""
     def load_game(self) -> None:
-        print("Loading not implemented")
-        return
+        raise NotImplementedError
 
     @property 
     def all_sprites(self) -> pygame.sprite.Group:
@@ -67,16 +72,43 @@ class Game:
             if hit:
                 break
 
+    def setup_ui(self):
+        if self.ui_open:
+            return
+        
+        self.ui_open = True
+
+    def teardown_ui(self):
+        if not self.ui_open:
+            return
+        
+        self.ui_open = False
+
+    def _handle_ui_event(self, event:pygame.Event) -> bool:
+        hit = False
+
+        return hit
+
     def handle_event(self, event:pygame.Event):
         if event.type == pygame.QUIT:
             pygame.quit()
             raise SystemExit
-        
+        elif event.type == CustomEvent.TO_UI:
+            if event.ui_action == "close":
+                self.teardown_ui()
+            elif event.ui_action == "open":
+                self.setup_ui()
+            return
+
         for interactable in self.all_interactables:
             hit = interactable.process_event(event)
             if hit:
                 return
-            
+        
+        hit = self._handle_ui_event(event)
+        if hit:
+            return
+        
         self.current_room.handle_event(event)
 
         
