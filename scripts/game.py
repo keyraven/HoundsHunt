@@ -76,6 +76,7 @@ class Game:
         if self.ui_open:
             return
         
+        print("OPEN UI")
         self.ui_open = True
 
     def teardown_ui(self):
@@ -94,9 +95,9 @@ class Game:
             pygame.quit()
             raise SystemExit
         elif event.type == CustomEvent.TO_UI:
-            if event.ui_action == "close":
+            if event.action == "close":
                 self.teardown_ui()
-            elif event.ui_action == "open":
+            elif event.action == "open":
                 self.setup_ui()
             return
 
@@ -107,6 +108,10 @@ class Game:
         
         hit = self._handle_ui_event(event)
         if hit:
+            return
+        
+        if event.type == CustomEvent.CHANGE_ROOM:
+            self.change_room(event.room)
             return
         
         self.current_room.handle_event(event)

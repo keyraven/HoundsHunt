@@ -9,8 +9,19 @@ class Room:
         self.all_interactables = pygame.sprite.LayeredUpdates()
         pass
     
+    def setup(self):
+        return
+    
+        
+    def teardown(self):
+        for sprite in self.all_sprites:
+            sprite.kill()
+
     def handle_event(self, event:pygame.Event):
         pass
+
+    def draw(self, draw_surface: pygame.Surface):
+        self.all_sprites.draw(draw_surface)
 
 class View:
     

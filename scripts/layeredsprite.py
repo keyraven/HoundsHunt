@@ -1,4 +1,5 @@
 import pygame
+import re
 
 class LayeredSprite(pygame.sprite.Sprite):
     
@@ -64,8 +65,6 @@ class LayeredSprite(pygame.sprite.Sprite):
     def update(self, *args, **kwargs):
         if self.normal_surface == None:
             self.build_surfaces()
-
-        return super().update(*args, **kwargs)
     
 
 

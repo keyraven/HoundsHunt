@@ -26,9 +26,7 @@ class StartRoom(room.Room):
         self.start_button = Button(pygame.Rect(340, 270, 100, 40), self.all_interactables, self.all_sprites,
                                    text="START", text_renderer=Fonts.preview_20, antialias=False, theme=start_theme)
     def teardown(self):
-        for sprite in self.all_sprites:
-            sprite.kill()
-
+        super().teardown()
         self.background = None
 
     def draw(self, draw_surface: pygame.Surface):
@@ -43,7 +41,6 @@ class StartRoom(room.Room):
         
         if event.type == CustomEvent.BUTTON_KEYUP:
             if event.sprite == self.start_button:
-                print("PRESS DETECTED")
                 pygame.event.post(pygame.Event(CustomEvent.CHANGE_ROOM, {"room":"room1"}))
 
         

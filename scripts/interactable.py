@@ -1,5 +1,4 @@
 import pygame
-import re 
 from scripts.custiom_events import CustomEvent
 from scripts.layeredsprite import LayeredSprite
 
@@ -96,22 +95,25 @@ class Interactable(LayeredSprite):
                 g.change_layer(self, new_layer)
             except AttributeError:
                 pass
-
-
+    
     def update(self, *args, **kwargs):
-        super().update()
+        super().update(*args, **kwargs)
 
-        if self.disabled:
-            self.image = self.disabled_surface
-        elif self.active:
-            self.image = self.active_surface
-        elif self.hover:
-            self.image = self.hover_surface
-        else:
-            self.image = self.normal_surface
+        self.image = self.get_draw_surface()
 
         return 
     
+    def get_draw_surface(self):
+
+        if self.disabled:
+            return self.disabled_surface
+        elif self.active:
+            return self.active_surface
+        elif self.hover:
+            return self.hover_surface
+        
+        return self.normal_surface
+
     def check_hover_state(self, mouse_location:tuple) -> bool:
         if self.rect.collidepoint(mouse_location):
             self.hover = True
@@ -122,6 +124,9 @@ class Interactable(LayeredSprite):
 
     def process_event(self, event:pygame.Event) -> bool:
         
+        if self.disabled:
+            return False
+
         hit = False
         #Check Hotkey
         if event.type == pygame.KEYUP:
