@@ -36,16 +36,16 @@ class Button(Interactable):
         
         if self.hover_surface != self.normal_surface:
             hover_text = self.text_renderer.render(self.text, self.antialias, self.hover_text_color)
-            self.hover_surface.blit(hover_text, (self.rect.width/2 - hover_text.get_width()/2, 
+            self.hover_surface.surface.blit(hover_text, (self.rect.width/2 - hover_text.get_width()/2, 
                                                  self.rect.height/2 - hover_text.get_height()/2))
             
         if self.active_surface != self.hover_surface:
             active_text = self.text_renderer.render(self.text, self.antialias, self.active_text_color)
-            self.active_surface.blit(active_text, (self.rect.width/2 - active_text.get_width()/2, 
+            self.active_surface.surface.blit(active_text, (self.rect.width/2 - active_text.get_width()/2, 
                                                    self.rect.height/2 - active_text.get_height()/2))
             
         if self.disabled_surface != self.normal_surface:
             disabled_text = self.text_renderer.render(self.text, self.antialias, self.disabled_text_color)
-            self.disabled_surface.blit(disabled_text, (self.rect.width/2 - disabled_text.get_width()/2, 
+            self.disabled_surface.surface.blit(disabled_text, (self.rect.width/2 - disabled_text.get_width()/2, 
                                                        self.rect.height/2 - disabled_text.get_height()/2))
 

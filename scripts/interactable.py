@@ -32,15 +32,15 @@ class Interactable(LayeredSprite):
         "scale_image": False
     }
 
-    def __init__(self, rect:pygame.Rect, *groups, hotkey:int = None, theme:dict = None, layer:int = 0):
-        super().__init__(rect, *groups, layer=layer, theme=theme)
+    def __init__(self, rect:pygame.Rect, *groups, hotkey:int = None, theme:dict = None, layer:int = 0, 
+                 collide_on_vis:bool = False, mask:pygame.Mask = None):
+        super().__init__(rect, *groups, layer=layer, theme=theme, collide_on_vis=collide_on_vis, mask=mask)
 
         self.hotkey = hotkey
-        self.rect = rect
         self.active =  False
         self.hover = False
         self.disabled = False
-
+       
         self.hover_background = self.theme.get("hover_background", self.background)
         self.active_background = self.theme.get("active_background", self.hover_background)
         self.disabled_background = self.theme.get("disabled_background", self.background)
@@ -49,14 +49,15 @@ class Interactable(LayeredSprite):
         self.active_image = self.theme.get("active_image", self.hover_image)
         self.disabled_image = self.theme.get("disabled_image", self.normal_image)
 
+    
         if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
             self.hover_image = self._scale_image(self.hover_image)
             self.active_image = self._scale_image(self.active_image)
             self.disabled_image = self._scale_image(self.disabled_image)
 
-        self.hover_surface = None
-        self.active_surface = None
-        self.disabled_surface = None
+        self.hover_surface:LayeredSprite.SurfaceWithMask = None
+        self.active_surface:LayeredSprite.SurfaceWithMask = None
+        self.disabled_surface:LayeredSprite.SurfaceWithMask = None
 
     def build_surfaces(self) -> pygame.Surface:
         super().build_surfaces()
@@ -64,29 +65,33 @@ class Interactable(LayeredSprite):
         if self.hover_background == self.background and self.hover_image == self.normal_image:
             self.hover_surface = self.normal_surface
         else:
-            self.hover_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
-            self._draw_background_shape(self.hover_surface, self.hover_background)
+            hover_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
+            self._draw_background_shape(hover_surface, self.hover_background)
             if self.hover_image is not None:
-                self.hover_surface.blit(self.hover_image, (self.rect.width.get_width()/2 - self.hover_image.get_width()/2,
-                                                         self.rect.height.get_height()/2 - self.hover_image.get_height()/2))
+                hover_surface.blit(self.hover_image, (self.rect.width.get_width()/2 - self.hover_image.get_width()/2,
+                                                      self.rect.height.get_height()/2 - self.hover_image.get_height()/2))
+            self.hover_surface = self.SurfaceWithMask(hover_surface, create_mask=self.collide_on_vis)
                 
-        if self.active_background == self.hover_background and self.active_image == self.normal_image:
+        if self.active_background == self.hover_background and self.active_image == self.hover_image:
             self.active_surface = self.hover_surface
         else:
-            self.active_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
-            self._draw_background_shape(self.active_surface, self.active_background)
+            active_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
+            self._draw_background_shape(active_surface, self.active_background)
             if self.active_image is not None:
-                self.active_surface.blit(self.active_image, (self.rect.width.get_width()/2 - self.active_image.get_width()/2,
+                active_surface.blit(self.active_image, (self.rect.width.get_width()/2 - self.active_image.get_width()/2,
                                                          self.rect.height.get_height()/2 - self.active_image.get_height()/2))
+            self.active_surface = self.SurfaceWithMask(active_surface, create_mask=self.collide_on_vis)
+            
                 
         if self.disabled_background == self.background and self.disabled_image == self.normal_image:
             self.disabled_surface = self.normal_surface
         else:
-            self.disabled_surface = pygame.Surface((self.rect.width, self.rect.height))
-            self._draw_background_shape(self.disabled_surface, self.disabled_background)
+            disabled_surface = pygame.Surface((self.rect.width, self.rect.height))
+            self._draw_background_shape(disabled_surface, self.disabled_background)
             if self.disabled_image is not None:
-                self.active_surface.blit(self.disabled_image, (self.rect.width/2 - self.disabled_image.get_width()/2,
-                                                         self.rect.height/2 - self.disabled_image.get_height()/2))
+                disabled_surface.blit(self.disabled_image, (self.rect.width/2 - self.disabled_image.get_width()/2,
+                                                            self.rect.height/2 - self.disabled_image.get_height()/2))
+            self.disabled_surface = self.SurfaceWithMask(disabled_surface, create_mask=self.collide_on_vis)
 
     def change_layer(self, new_layer:int):
         self.layer = new_layer
@@ -99,11 +104,11 @@ class Interactable(LayeredSprite):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
 
-        self.image = self.get_draw_surface()
+        self._image = self.get_draw_surface()
 
         return 
     
-    def get_draw_surface(self):
+    def get_draw_surface(self) -> LayeredSprite.SurfaceWithMask:
 
         if self.disabled:
             return self.disabled_surface
@@ -111,17 +116,30 @@ class Interactable(LayeredSprite):
             return self.active_surface
         elif self.hover:
             return self.hover_surface
+    
         
         return self.normal_surface
 
+    def collidepoint(self, point:tuple) -> bool:
+        if self.rect.collidepoint(point):
+            if self.mask is None:
+                return True
+            
+            relx = point[0] - self.rect.x
+            rely = point[1] - self.rect.y
+            if self.mask.get_at((relx, rely)):
+                return True
+
+        return False
+
     def check_hover_state(self, mouse_location:tuple) -> bool:
-        if self.rect.collidepoint(mouse_location):
+        if self.collidepoint(mouse_location):
             self.hover = True
         else:
             self.hover = False
             self.active = False
         return self.hover
-
+    
     def process_event(self, event:pygame.Event) -> bool:
         
         if self.disabled:
