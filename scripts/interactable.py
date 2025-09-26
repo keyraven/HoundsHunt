@@ -33,8 +33,9 @@ class Interactable(LayeredSprite):
     }
 
     def __init__(self, rect:pygame.Rect, *groups, hotkey:int = None, theme:dict = None, layer:int = 0, 
-                 collide_on_vis:bool = False, mask:pygame.Mask = None):
-        super().__init__(rect, *groups, layer=layer, theme=theme, collide_on_vis=collide_on_vis, mask=mask)
+                 collide_on_vis:bool = False, mask:pygame.Mask = None, id = None):
+        super().__init__(rect, *groups, layer=layer, theme=theme, collide_on_vis=collide_on_vis, mask=mask,
+                         id=id)
 
         self.hotkey = hotkey
         self.active =  False

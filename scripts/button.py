@@ -14,8 +14,9 @@ class Button(Interactable):
         "scale_image": False
     }
 
-    def __init__(self, rect:pygame.Rect, *groups, text:str, text_renderer:pygame.Font, antialias:bool = True, theme:dict = None, hotkey = None):
-        super().__init__(rect, *groups, hotkey=hotkey, theme=theme)
+    def __init__(self, rect:pygame.Rect, *groups, text:str, text_renderer:pygame.Font, antialias:bool = True, 
+                 theme:dict = None, layer = 0, hotkey = None, id = None):
+        super().__init__(rect, *groups, hotkey=hotkey, theme=theme, layer=layer)
 
         self.text = text
         self.text_renderer = text_renderer

@@ -15,11 +15,14 @@ class LayeredSprite(pygame.sprite.Sprite):
             
             self.surface = surface
             self._create_mask = create_mask
+            self.id = id
 
             if self._create_mask:
                 self.mask = pygame.mask.from_surface(self.surface)
             else:
                 self.mask = mask
+
+            self.visable = True
 
         @property
         def create_mask(self):
@@ -61,7 +64,7 @@ class LayeredSprite(pygame.sprite.Sprite):
 
 
     def __init__(self, rect, *groups, layer:int = 0, image:pygame.Surface = None, theme:dict = None, 
-                 collide_on_vis:bool = False, mask:pygame.Mask = None):
+                 collide_on_vis:bool = False, mask:pygame.Mask = None, id = None):
         super().__init__()
 
         self.layer = layer
@@ -71,6 +74,7 @@ class LayeredSprite(pygame.sprite.Sprite):
         self.rect = rect
         self._mask = mask
         self.collide_on_vis = collide_on_vis 
+        self.id = id
 
         self.theme = theme if theme is not None else {}
         for x in self.theme:
@@ -101,6 +105,9 @@ class LayeredSprite(pygame.sprite.Sprite):
         return self._image.mask
     
     def _scale_image(self, surface:pygame.Surface) -> pygame.Surface:
+        if surface is None:
+            return None
+        
         if surface.get_width() > self.rect.width or surface.get_height() > self.rect.height:
             if surface.get_width() > surface.get_height():
                 scale = self.rect.width/surface.get_width()
@@ -132,11 +139,11 @@ class LayeredSprite(pygame.sprite.Sprite):
                                                     self.rect.height.get_height()/2 - self.normal_image.get_height()/2))
         self.normal_surface = self.SurfaceWithMask(normal_surface, self._mask, create_mask=self.collide_on_vis)
 
-        self._image = normal_surface
+        self._image = self.normal_surface
             
     def update(self, *args, **kwargs):
         if self.normal_surface == None:
             self.build_surfaces()
-    
+
 
 

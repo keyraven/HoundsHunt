@@ -17,7 +17,7 @@ class Room1(Room):
         (glitter_frames, glitter_mask) = AnimatedInteractable.get_frames_dir("resources/glitter_animation")
 
         self.glitter = AnimatedInteractable(pygame.Rect(175, 32, glitter_frames[0].get_width(), glitter_frames[0].get_height()), 
-                                             glitter_frames, self.all_interactables, self.all_sprites, speed = 10, hover_speed = 6, 
+                                             glitter_frames, self.all_sprites, speed = 10, hover_speed = 6, 
                                              mask=glitter_mask)
 
     def draw(self, draw_surface):

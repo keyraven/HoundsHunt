@@ -6,7 +6,6 @@ class Room:
     def __init__(self):
         self.background = None
         self.all_sprites = pygame.sprite.LayeredUpdates()
-        self.all_interactables = pygame.sprite.LayeredUpdates()
         pass
     
     def setup(self):

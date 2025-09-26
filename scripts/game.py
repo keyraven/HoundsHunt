@@ -6,6 +6,7 @@ import pygame
 from scripts.interactable import Interactable
 from scripts.button import Button
 from scripts.custiom_events import CustomEvent
+from scripts.layeredsprite import LayeredSprite
 import random
 
 """
@@ -35,28 +36,18 @@ class Game:
         raise NotImplementedError
 
     @property 
-    def all_sprites(self) -> pygame.sprite.Group:
+    def room_sprites(self) -> pygame.sprite.Group:
         return self.current_room.all_sprites
-    
-    @property
-    def all_interactables(self) -> pygame.sprite.Group:
-        return self.current_room.all_interactables
-    
+        
     def draw(self, pixel_screen: pygame.Surface):
         self.current_room.draw(pixel_screen)
+        self.ui_sprites.draw(pixel_screen)
 
     def update_all_sprites(self) -> pygame.sprite.Group:
         all_sprites = self.get_all_sprites()
         all_sprites.update()
         return self.get_all_sprites()
-    
-    def visual_tests(self, draw_screen:pygame.Surface):
-        if self.i % 2:
-            draw_screen.fill("purple")
-        else:
-            draw_screen.fill("orange")
-        return
-    
+        
     def change_room(self, new_room_key:str):
         if self.current_room is not None:
             self.current_room.teardown()
@@ -64,24 +55,47 @@ class Game:
         self.current_room.setup()
 
     def update(self):
-        self.all_sprites.update()
+        self.ui_sprites.update()
+        self.room_sprites.update()
 
     def handle_mouselocation(self, mouseLocation:tuple):
-        for interactable in self.all_interactables:
-            hit = interactable.check_hover_state(mouseLocation)
+        
+        hit = False
+        for interactable in self.ui_sprites:
+            try:
+                hit = interactable.check_hover_state(mouseLocation)
+            except AttributeError:
+                pass
             if hit:
-                break
+                return
+        
+        for interactable in self.room_sprites:
+            try:
+                hit = interactable.check_hover_state(mouseLocation)
+            except AttributeError:
+                pass
+            if hit:
+                return
 
     def setup_ui(self):
         if self.ui_open:
             return
         
-        print("OPEN UI")
+        theme = {
+            "background":  "#632908FF",
+        }
+        self.speak_box = LayeredSprite(pygame.Rect(10, 264, 522, 90), self.ui_sprites, layer=0,
+                                       theme=theme, id="speak_box")
+
+
         self.ui_open = True
 
     def teardown_ui(self):
         if not self.ui_open:
             return
+        
+        for sprite in self.ui_sprites:
+            sprite.kill()
         
         self.ui_open = False
 
@@ -91,6 +105,7 @@ class Game:
         return hit
 
     def handle_event(self, event:pygame.Event):
+        hit = False
         if event.type == pygame.QUIT:
             pygame.quit()
             raise SystemExit
@@ -100,12 +115,24 @@ class Game:
             elif event.action == "open":
                 self.setup_ui()
             return
-
-        for interactable in self.all_interactables:
-            hit = interactable.process_event(event)
+        
+        # Processing Clicks, turns them into click events. 
+        for interactable in self.ui_sprites:
+            try:
+                hit = interactable.process_event(event)
+            except AttributeError:
+                pass
+            if hit:
+                return
+        for interactable in self.room_sprites:
+            try:
+                hit = interactable.process_event(event)
+            except AttributeError:
+                pass
             if hit:
                 return
         
+        # Handling Events generated above....
         hit = self._handle_ui_event(event)
         if hit:
             return
