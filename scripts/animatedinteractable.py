@@ -4,11 +4,11 @@ import os
 
 class AnimatedInteractable(Interactable):
 
-    def __init__(self, rect, frames:list, *groups, hover_frames:list = None, hotkey = None, 
+    def __init__(self, rect, frames:list, groups = (), hover_frames:list = None, hotkey = None, 
                  layer = 0, repeat:int = -1, speed:int = 1, hover_speed:int = None, theme:dict = None, 
-                 mask:pygame.Mask = None, collide_on_vis:bool = False, id = None):
-        super().__init__(rect, *groups, hotkey=hotkey, layer=layer, theme=theme, collide_on_vis=collide_on_vis,
-                         id=id)
+                 mask:pygame.Mask = None, collide_on_vis:bool = False, id = None, visible:bool = True):
+        super().__init__(rect, groups=groups, hotkey=hotkey, layer=layer, theme=theme, collide_on_vis=collide_on_vis,
+                         id=id, visible=visible)
 
         self.i = 0
         self.current_frame = 0

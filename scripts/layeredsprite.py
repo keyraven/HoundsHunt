@@ -1,3 +1,4 @@
+from scripts.custiom_events import CustomEvent
 import pygame
 import re
 
@@ -8,6 +9,8 @@ class LayeredSprite(pygame.sprite.Sprite):
         "shape": "rect",
         "scale_image": True
     }
+
+    empty_surface = pygame.Surface((0,0))
 
     class SurfaceWithMask():
         
@@ -21,8 +24,6 @@ class LayeredSprite(pygame.sprite.Sprite):
                 self.mask = pygame.mask.from_surface(self.surface)
             else:
                 self.mask = mask
-
-            self.visable = True
 
         @property
         def create_mask(self):
@@ -62,12 +63,13 @@ class LayeredSprite(pygame.sprite.Sprite):
             copy._create_mask = self._create_mask
             return copy
 
-
-    def __init__(self, rect, *groups, layer:int = 0, image:pygame.Surface = None, theme:dict = None, 
-                 collide_on_vis:bool = False, mask:pygame.Mask = None, id = None):
+    def __init__(self, rect, groups = (), layer:int = 0, image:pygame.Surface = None, theme:dict = None, 
+                 collide_on_vis:bool = False, mask:pygame.Mask = None, id = None, visible:bool = True):
         super().__init__()
 
         self.layer = layer
+        if type(groups) is not tuple or type(groups) is not list:
+            groups = [groups]
         for g in groups:
             g.add(self)
 
@@ -75,15 +77,16 @@ class LayeredSprite(pygame.sprite.Sprite):
         self._mask = mask
         self.collide_on_vis = collide_on_vis 
         self.id = id
+        self.visible = visible
+        self.process_clicks = False
 
         self.theme = theme if theme is not None else {}
         for x in self.theme:
             if type(self.theme[x]) is str:
                 self.theme[x] = self.theme[x].strip()
 
-        self.background = self.theme.get("background", self.theme_defaults["background"])
-
-        self.shape = self.theme.get("shape", self.theme_defaults["shape"])
+        self.theme = {}
+        self.update_theme(theme)
 
         self.normal_image = self.theme.get("image") if image is None else image
         if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
@@ -95,15 +98,38 @@ class LayeredSprite(pygame.sprite.Sprite):
 
     @property
     def image(self):
-        return self._image.surface
+        if self.visible:
+            return self._image.surface
+        else:
+            return self.empty_surface
     
     @property
     def mask(self):
+        if not self.visible:
+            return None
+        
         if self._image.mask is None:
             return self.normal_surface.mask
         
         return self._image.mask
     
+    def update_image(self, new_image:pygame.Surface):
+
+        self.normal_image = new_image
+        if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
+            self.normal_image = self._scale_image(self.normal_image)
+
+        self.normal_surface = None # Triggers rebuild on next update. 
+
+    def update_theme(self, new_theme:dict):
+        self.theme = new_theme if type(new_theme) is dict else {}
+
+        self.background = self.theme.get("background", self.theme_defaults["background"])
+
+        self.shape = self.theme.get("shape", self.theme_defaults["shape"])
+
+        self.normal_surface = None # This trigger re-drawing of the surfaces. 
+
     def _scale_image(self, surface:pygame.Surface) -> pygame.Surface:
         if surface is None:
             return None
@@ -129,7 +155,36 @@ class LayeredSprite(pygame.sprite.Sprite):
             pygame.draw.ellipse(surface_to_draw, pygame.Color(color), surface_to_draw.get_rect())
 
         return surface_to_draw
+    
+    def collidepoint(self, point:tuple) -> bool:
+        if not self.visible:
+            return False
+
+        if self.rect.collidepoint(point):
+            if self.mask is None:
+                return True
+            
+            relx = point[0] - self.rect.x
+            rely = point[1] - self.rect.y
+            if self.mask.get_at((relx, rely)):
+                return True
+
+        return False
+
+    def process_event(self, event:pygame.Event) -> bool:
+        if not self.process_clicks or not self.visible:
+            return False
         
+        hit = False
+        if event.type == pygame.MOUSEBUTTONDOWN and self.collide_on_vis(event.pos):
+            pygame.event.post(pygame.event.Event(CustomEvent.BUTTON_KEYDOWN, {"sprite": self}))
+            hit = True
+        elif event.type == pygame.MOUSEBUTTONUP and self.collide_on_vis(event.pos):
+            pygame.event.post(pygame.event.Event(CustomEvent.BUTTON_KEYUP, {"sprite": self}))
+            hit = True
+
+        return hit
+
     def build_surfaces(self) -> pygame.Surface:
 
         normal_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)

@@ -23,7 +23,7 @@ class StartRoom(room.Room):
             "text_color": "black"
         }
 
-        self.start_button = Button(pygame.Rect(340, 270, 100, 40), self.all_sprites,
+        self.start_button = Button(pygame.Rect(340, 270, 100, 40), groups = self.all_sprites,
                                    text="START", text_renderer=Fonts.preview_20, antialias=False, theme=start_theme)
     def teardown(self):
         super().teardown()

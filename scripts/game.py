@@ -7,6 +7,7 @@ from scripts.interactable import Interactable
 from scripts.button import Button
 from scripts.custiom_events import CustomEvent
 from scripts.layeredsprite import LayeredSprite
+from scripts.textbox import TextBox
 import random
 
 """
@@ -28,6 +29,10 @@ class Game:
         
         self.ui_sprites = pygame.sprite.LayeredUpdates()
         self.ui_open = False
+
+        self.ui_theme = {
+
+        }
         
         return
 
@@ -81,12 +86,58 @@ class Game:
         if self.ui_open:
             return
         
-        theme = {
-            "background":  "#632908FF",
-        }
-        self.speak_box = LayeredSprite(pygame.Rect(10, 264, 522, 90), self.ui_sprites, layer=0,
-                                       theme=theme, id="speak_box")
+        l = 0
+        
+        # SETUP SPEECH BOX  ------------------------------------------------------------------------
 
+        theme = {
+            "background":  "#45210CFF",
+        }
+        self.speak_box = LayeredSprite(pygame.Rect(10, 264, 522, 90), self.ui_sprites, layer=l,
+                                       theme=theme, id="speak_box", visible=False)
+        l += 1
+
+        border_size = 3
+        theme = {
+            "background":  "#6C564AFF",
+        }
+        self.speak_box_inner = LayeredSprite(pygame.Rect(10+border_size, 264+border_size, 522-2*border_size, 90-2*border_size), 
+                                             self.ui_sprites, layer=l, theme=theme, id="speak_box_inner", visible=False)
+        
+        l += 1
+        
+        theme = {
+            "background":  "#D39256FF",
+        }
+        self.picture = LayeredSprite(pygame.Rect(20, 273, 85, 74), self.ui_sprites, layer=l,
+                                       theme=theme, id="picture", visible=False)
+        
+        self.speak_text_box = TextBox(pygame.Rect(105, 273, 416, 73), "", None, groups = self.ui_sprites, 
+                                      layer=l, antialias=False, visible=False)
+        
+        l += 1
+        
+        self.speak_box_hitbox = LayeredSprite(pygame.Rect(10, 264, 522, 90), self.ui_sprites, layer=l,
+                                              id="speak_hitbox", visible=False)
+        self.speak_box_hitbox.process_clicks = True
+        
+
+        # SETUP INVENTORY BOX: 
+
+        theme = {
+            "background":  "#45210CFF",
+        }
+        self.inventory_box = LayeredSprite(pygame.Rect(540, 264, 90, 90), self.ui_sprites, theme=theme)
+        
+        border_size = 3
+        theme = {
+            "background":  "#6C564AFF",
+        }
+        self.inventory_box_inner = LayeredSprite(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 90-2*border_size), 
+                                                 self.ui_sprites, theme=theme)
+        
+        
+    
 
         self.ui_open = True
 

@@ -32,10 +32,10 @@ class Interactable(LayeredSprite):
         "scale_image": False
     }
 
-    def __init__(self, rect:pygame.Rect, *groups, hotkey:int = None, theme:dict = None, layer:int = 0, 
-                 collide_on_vis:bool = False, mask:pygame.Mask = None, id = None):
-        super().__init__(rect, *groups, layer=layer, theme=theme, collide_on_vis=collide_on_vis, mask=mask,
-                         id=id)
+    def __init__(self, rect:pygame.Rect, groups = (), hotkey:int = None, theme:dict = None, layer:int = 0, 
+                 collide_on_vis:bool = False, mask:pygame.Mask = None, id = None, visible:bool = True):
+        super().__init__(rect, groups=groups, layer=layer, theme=theme, collide_on_vis=collide_on_vis, mask=mask,
+                         id=id, visible=visible)
 
         self.hotkey = hotkey
         self.active =  False
@@ -121,18 +121,6 @@ class Interactable(LayeredSprite):
         
         return self.normal_surface
 
-    def collidepoint(self, point:tuple) -> bool:
-        if self.rect.collidepoint(point):
-            if self.mask is None:
-                return True
-            
-            relx = point[0] - self.rect.x
-            rely = point[1] - self.rect.y
-            if self.mask.get_at((relx, rely)):
-                return True
-
-        return False
-
     def check_hover_state(self, mouse_location:tuple) -> bool:
         if self.collidepoint(mouse_location):
             self.hover = True
@@ -143,7 +131,7 @@ class Interactable(LayeredSprite):
     
     def process_event(self, event:pygame.Event) -> bool:
         
-        if self.disabled:
+        if self.disabled or not self.visible:
             return False
 
         hit = False
