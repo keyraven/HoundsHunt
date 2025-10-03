@@ -23,4 +23,17 @@ class Room1(Room):
     def draw(self, draw_surface):
         draw_surface.blit(self.background, (0,0))
         super().draw(draw_surface)
-        
+
+    def handle_event(self, event, active_item=None):
+        super().handle_event(event, active_item)
+
+        if event.type == CustomEvent.BUTTON_KEYDOWN:
+            if event.sprite == self.glitter:
+
+                event = pygame.event.Event(CustomEvent.TO_UI, {"action":"speak", "data":[("hound", "HOUND: What is this? Something moves beyond the veil. "), 
+                                                                                            (None, "(hunger drives you forward. you rip open the rift, and throw yourself inward)")]})
+                pygame.event.post(event)
+
+        elif event.type == CustomEvent.FROM_UI:
+            if event.action == "speak_over":
+                self.glitter.speed = 2

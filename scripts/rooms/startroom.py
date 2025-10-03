@@ -37,7 +37,7 @@ class StartRoom(room.Room):
 
         self.all_sprites.draw(draw_surface)
 
-    def handle_event(self, event):
+    def handle_event(self, event, active_item = None):
         
         if event.type == CustomEvent.BUTTON_KEYUP:
             if event.sprite == self.start_button:

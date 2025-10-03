@@ -121,8 +121,14 @@ class LayeredSprite(pygame.sprite.Sprite):
 
         self.normal_surface = None # Triggers rebuild on next update. 
 
-    def update_theme(self, new_theme:dict):
-        self.theme = new_theme if type(new_theme) is dict else {}
+    def update_theme(self, new_theme:dict, clear_old = False):
+        if new_theme is None:
+            new_theme = {}
+
+        if clear_old:
+            self.theme = new_theme
+        else:
+            self.theme.update(new_theme)
 
         self.background = self.theme.get("background", self.theme_defaults["background"])
 
@@ -190,8 +196,8 @@ class LayeredSprite(pygame.sprite.Sprite):
         normal_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
         self._draw_background_shape(normal_surface, self.background)
         if self.normal_image is not None:
-            normal_surface.blit(self.normal_image, (self.rect.width.get_width()/2 - self.normal_image.get_width()/2,
-                                                    self.rect.height.get_height()/2 - self.normal_image.get_height()/2))
+            normal_surface.blit(self.normal_image, (self.rect.width/2 - self.normal_image.get_width()/2,
+                                                    self.rect.height/2 - self.normal_image.get_height()/2))
         self.normal_surface = self.SurfaceWithMask(normal_surface, self._mask, create_mask=self.collide_on_vis)
 
         self._image = self.normal_surface

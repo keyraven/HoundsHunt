@@ -24,15 +24,16 @@ class Game:
             "room1": Room1
         }
         self.inventory = []
+        self.active_item = None
         self.current_room:r = None
         self.change_room("start_room")
         
         self.ui_sprites = pygame.sprite.LayeredUpdates()
         self.ui_open = False
 
-        self.ui_theme = {
-
-        }
+        self.speak_stack = []
+        self.speak_index = 0
+        self.speak_box_hitbox = None
         
         return
 
@@ -64,6 +65,7 @@ class Game:
         self.room_sprites.update()
 
     def handle_mouselocation(self, mouseLocation:tuple):
+        """Allows objects to react to hover """
         
         hit = False
         for interactable in self.ui_sprites:
@@ -82,63 +84,110 @@ class Game:
             if hit:
                 return
 
-    def setup_ui(self):
+    def update_speak_theme(self, new_theme):
+
+        if new_theme == "hound":
+            theme = {
+                "dark_box": "#363020",
+                "light_box": "#605C4E",
+                "text_color": "#000000",
+                "photo_background": "#A49966"
+            }
+
+            font = Fonts.preview_20
+            photo = pygame.image.load("resources/UI/hound-face.png")
+
+        else:
+            theme = {
+                "dark_box": "#363020",
+                "light_box": "#605C4E",
+                "text_color": "#000000",
+                "photo_background": "#36302000"
+            }
+
+            font = Fonts.preview_20
+            photo = None
+            
+
+        self.speak_box.update_theme(
+            {
+                "background": theme["dark_box"]
+            }
+        )
+        self.speak_box_inner.update_theme(
+            {
+                "background": theme["light_box"]
+            }
+        )
+        self.speak_text_box.update_theme(
+            {
+                "text_color": theme["text_color"]
+            }
+        )
+        self.speak_text_box.text_renderer = font
+
+        self.picture.update_theme(
+            {
+                "background": theme["photo_background"]
+            }
+        )
+        self.picture.update_image(photo)
+
+    def set_speak_visablity(self, visable:bool):
+        """Sets the speak box visablity."""
+        if not self.ui_open:
+            return
+
+        self.speak_box.visible = visable
+        self.speak_box_inner.visible = visable
+        self.speak_text_box.visible = visable
+        self.picture.visible = visable
+        self.speak_text_box.visible = visable
+        self.speak_box_hitbox.visible = visable
+
+    def setup_ui(self, theme = "default"):
         if self.ui_open:
             return
         
         l = 0
         
         # SETUP SPEECH BOX  ------------------------------------------------------------------------
-
-        theme = {
-            "background":  "#45210CFF",
-        }
         self.speak_box = LayeredSprite(pygame.Rect(10, 264, 522, 90), self.ui_sprites, layer=l,
-                                       theme=theme, id="speak_box", visible=False)
+                                       id="speak_box", visible=False)
         l += 1
 
         border_size = 3
-        theme = {
-            "background":  "#6C564AFF",
-        }
         self.speak_box_inner = LayeredSprite(pygame.Rect(10+border_size, 264+border_size, 522-2*border_size, 90-2*border_size), 
-                                             self.ui_sprites, layer=l, theme=theme, id="speak_box_inner", visible=False)
+                                             self.ui_sprites, layer=l, id="speak_box_inner", visible=False)
         
         l += 1
-        
-        theme = {
-            "background":  "#D39256FF",
-        }
         self.picture = LayeredSprite(pygame.Rect(20, 273, 85, 74), self.ui_sprites, layer=l,
-                                       theme=theme, id="picture", visible=False)
+                                       id="picture", visible=False)
         
-        self.speak_text_box = TextBox(pygame.Rect(105, 273, 416, 73), "", None, groups = self.ui_sprites, 
-                                      layer=l, antialias=False, visible=False)
+        self.speak_text_box = TextBox(pygame.Rect(107, 273, 416, 73), "", None, groups = self.ui_sprites, 
+                                      layer=l, antialias=False, visible=False, animate=True)
         
         l += 1
         
-        self.speak_box_hitbox = LayeredSprite(pygame.Rect(10, 264, 522, 90), self.ui_sprites, layer=l,
+        self.speak_box_hitbox = Interactable(pygame.Rect(10, 264, 522, 90), self.ui_sprites, layer=l,
                                               id="speak_hitbox", visible=False)
-        self.speak_box_hitbox.process_clicks = True
-        
+
+        self.update_speak_theme(theme)
 
         # SETUP INVENTORY BOX: 
 
         theme = {
-            "background":  "#45210CFF",
+            "background":  "#363020",
         }
         self.inventory_box = LayeredSprite(pygame.Rect(540, 264, 90, 90), self.ui_sprites, theme=theme)
         
         border_size = 3
         theme = {
-            "background":  "#6C564AFF",
+            "background":  "#605C4E",
         }
         self.inventory_box_inner = LayeredSprite(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 90-2*border_size), 
                                                  self.ui_sprites, theme=theme)
         
-        
-    
-
         self.ui_open = True
 
     def teardown_ui(self):
@@ -150,22 +199,53 @@ class Game:
         
         self.ui_open = False
 
+    def proceed_speak(self) -> bool:
+        """Proceeds the speak stack. If there is nothing to proceed, hide the speak box and return True. """
+        if self.speak_index >= len(self.speak_stack):
+            self.speak_index = 0
+            self.speak_stack = []
+            self.set_speak_visablity(False)
+            return True
+
+        self.set_speak_visablity(True)
+        self.speak_text_box.set_text(self.speak_stack[self.speak_index][1])
+        self.update_speak_theme(self.speak_stack[self.speak_index][0])
+        self.speak_index += 1
+        return False
+
     def _handle_ui_event(self, event:pygame.Event) -> bool:
         hit = False
 
-        return hit
+        if event.type == CustomEvent.BUTTON_KEYDOWN:
+            if event.sprite == self.speak_box_hitbox:
+                hit = True
+                if not self.speak_text_box.animation_over(): 
+                    self.speak_text_box.end_animation()
+                else:
+                    if self.proceed_speak():
+                        pygame.event.post(pygame.event.Event(CustomEvent.FROM_UI, {"action": "speak_over"}))
+        elif event.type == CustomEvent.TO_UI:
+            if event.action == "speak":
+                hit = True
+                self.speak_stack = event.data
+                self.speak_index = 0
+                self.proceed_speak()
+            elif event.action == "close":
+                hit = True
+                self.teardown_ui()
+            elif event.action == "open":
+                hit = True
+                self.setup_ui()
 
+        return hit
+    
     def handle_event(self, event:pygame.Event):
+        """First Stop for Events. Calls other event handlers. """
+        
         hit = False
         if event.type == pygame.QUIT:
             pygame.quit()
             raise SystemExit
-        elif event.type == CustomEvent.TO_UI:
-            if event.action == "close":
-                self.teardown_ui()
-            elif event.action == "open":
-                self.setup_ui()
-            return
         
         # Processing Clicks, turns them into click events. 
         for interactable in self.ui_sprites:
@@ -192,7 +272,7 @@ class Game:
             self.change_room(event.room)
             return
         
-        self.current_room.handle_event(event)
+        self.current_room.handle_event(event, self.active_item)
 
         
         

@@ -16,7 +16,7 @@ class Room:
         for sprite in self.all_sprites:
             sprite.kill()
 
-    def handle_event(self, event:pygame.Event):
+    def handle_event(self, event:pygame.Event, active_item = None):
         pass
 
     def draw(self, draw_surface: pygame.Surface):
