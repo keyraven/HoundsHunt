@@ -13,7 +13,6 @@ class Room1(Room):
     def setup(self):
         #Send Signal to Open UI
         pygame.event.post(pygame.event.Event(CustomEvent.TO_UI, {"action": "open"}))
-        print(pygame.event.peek())
 
         (glitter_frames, glitter_mask) = AnimatedInteractable.get_frames_dir("resources/glitter_animation")
 
@@ -35,7 +34,6 @@ class Room1(Room):
                                                                                             (None, "(hunger drives you forward. you rip open the rift, and throw yourself inward)")]})
                 pygame.event.post(event)
 
-    def handle_ui_signals(self, event, active_item=None):
-        if event.type == CustomEvent.FROM_UI:
+        elif event.type == CustomEvent.FROM_UI:
             if event.action == "speak_over":
                 self.glitter.speed = 2
