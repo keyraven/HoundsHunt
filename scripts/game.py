@@ -224,55 +224,74 @@ class Game:
                 else:
                     if self.proceed_speak():
                         pygame.event.post(pygame.event.Event(CustomEvent.FROM_UI, {"action": "speak_over"}))
-        elif event.type == CustomEvent.TO_UI:
+
+        return hit
+    
+    def _handle_ui_signaling(self, event:pygame.Event):
+        if event.type == CustomEvent.TO_UI:
             if event.action == "speak":
-                hit = True
                 self.speak_stack = event.data
                 self.speak_index = 0
                 self.proceed_speak()
             elif event.action == "close":
-                hit = True
                 self.teardown_ui()
             elif event.action == "open":
-                hit = True
                 self.setup_ui()
+        elif event.type == CustomEvent.CHANGE_ROOM:
+            self.change_room(event.room)
+        
+    def handle_events(self):
 
-        return hit
-    
-    def handle_event(self, event:pygame.Event):
-        """First Stop for Events. Calls other event handlers. """
+        # Start by processing raw events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                raise SystemExit
+
+            hit = self._process_event(event)
+            if hit:
+                continue
+
+        #Then, process events developed above
+        for event in pygame.event.get():
+            hit = self._handle_ui_event(event)
+            if hit:
+                continue
+            
+            hit = self.current_room.handle_event(event, self.active_item)
+            if hit:
+                continue
         
-        hit = False
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            raise SystemExit
-        
-        # Processing Clicks, turns them into click events. 
+        # Then, process UI signals raised above, until there are none left. 
+        while True:
+            for event in pygame.event.get():
+                self.current_room.handle_ui_signals(event, self.active_item)
+                self._handle_ui_signaling(event)
+
+            if not pygame.event.peek():
+                break
+                
+              
+    def _process_event(self, event:pygame.Event):
         for interactable in self.ui_sprites:
             try:
                 hit = interactable.process_event(event)
             except AttributeError:
                 pass
             if hit:
-                return
+                return True
         for interactable in self.room_sprites:
             try:
                 hit = interactable.process_event(event)
             except AttributeError:
                 pass
             if hit:
-                return
+                return True
         
-        # Handling Events generated above....
-        hit = self._handle_ui_event(event)
-        if hit:
-            return
+        return False
         
-        if event.type == CustomEvent.CHANGE_ROOM:
-            self.change_room(event.room)
-            return
         
-        self.current_room.handle_event(event, self.active_item)
+        
 
         
         

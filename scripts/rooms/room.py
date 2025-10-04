@@ -19,6 +19,9 @@ class Room:
     def handle_event(self, event:pygame.Event, active_item = None):
         pass
 
+    def handle_ui_signals(self, event:pygame.Event, active_item = None):
+        pass
+
     def draw(self, draw_surface: pygame.Surface):
         self.all_sprites.draw(draw_surface)
 
