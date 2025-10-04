@@ -36,8 +36,14 @@ async def main():
         game_info.handle_mouselocation(pygame.mouse.get_pos())
 
         # Process player inputs and events. 
-        for event in pygame.event.get():
-            game_info.handle_event(event)
+        while True:
+            for event in pygame.event.get():
+                game_info.handle_event(event)
+            
+            # Events might have been generated above. Check to see if the 
+            # event queue if empty, and only proceed if it is. 
+            if not pygame.event.peek():
+                break
     
         #Stuff to be run every frame
         game_info.update()

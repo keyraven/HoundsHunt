@@ -50,15 +50,12 @@ class TextBox(LayeredSprite):
     def build_surfaces(self):
         super().build_surfaces()
 
-        pygame.image.save(self.normal_surface.surface, "text.png")
-
         if self.text_renderer is not None:
             text_surface, unblited = TextBox.drawText(self.text[:self.display_pos], self.text_color, self.rect, self.text_renderer, self.y_padding, self.x_padding, 
                                         self.antialias)
 
             self.normal_surface.blit(text_surface)
 
-            pygame.image.save(self.normal_surface.surface, "text.png")
 
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
