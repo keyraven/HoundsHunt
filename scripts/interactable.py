@@ -118,10 +118,14 @@ class Interactable(LayeredSprite):
         elif self.hover:
             return self.hover_surface
     
-        
         return self.normal_surface
 
-    def check_hover_state(self, mouse_location:tuple) -> bool:
+    def set_hover_state_from_pos(self, mouse_location:tuple) -> bool:
+        if self.disabled:
+            self.hover = False
+            self.active = False
+            return self.hover
+        
         if self.collidepoint(mouse_location):
             self.hover = True
         else:
@@ -129,6 +133,11 @@ class Interactable(LayeredSprite):
             self.active = False
         return self.hover
     
+    def set_hover_state(self, hover_state):
+        self.hover = hover_state
+        if not self.hover:
+            self.active = False
+
     def process_event(self, event:pygame.Event) -> bool:
         
         if self.disabled or not self.visible:
@@ -144,11 +153,11 @@ class Interactable(LayeredSprite):
         #Check MouseClick
         if not self.hover: # If not hovering over the button, don't bother with checking for mouseclick
             pass
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN and self.collidepoint(event.pos):
             pygame.event.post(pygame.event.Event(CustomEvent.BUTTON_KEYDOWN, {"sprite": self}))
             hit = True
             self.active = True
-        elif event.type == pygame.MOUSEBUTTONUP:
+        elif event.type == pygame.MOUSEBUTTONUP and self.collidepoint(event.pos):
             pygame.event.post(pygame.event.Event(CustomEvent.BUTTON_KEYUP, {"sprite": self}))
             hit = True
             self.active = False

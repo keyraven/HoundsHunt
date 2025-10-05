@@ -2,6 +2,7 @@ from scripts.rooms.room import Room
 import pygame
 from scripts.custiom_events import CustomEvent
 from scripts.animatedinteractable import AnimatedInteractable
+from scripts.inventoryobject import InventoryObject
 
 class Room1(Room):
 
@@ -32,6 +33,20 @@ class Room1(Room):
 
                 event = pygame.event.Event(CustomEvent.TO_UI, {"action":"speak", "data":[("hound", "HOUND: What is this? Something moves beyond the veil. "), 
                                                                                             (None, "(hunger drives you forward. you rip open the rift, and throw yourself inward)")]})
+                pygame.event.post(event)
+
+
+                ### TEST TEST TEST
+                image = pygame.image.load("resources/objects/test.png")
+                event = pygame.event.Event(CustomEvent.TO_UI, {"action": "add_inventory", "object": InventoryObject("test1", "Test 1", image=image)})
+                pygame.event.post(event)
+                event = pygame.event.Event(CustomEvent.TO_UI, {"action": "add_inventory", "object": InventoryObject("test2", "Test 2", image=image)})
+                pygame.event.post(event)
+                event = pygame.event.Event(CustomEvent.TO_UI, {"action": "add_inventory", "object": InventoryObject("test3", "Test 3", image=image)})
+                pygame.event.post(event)
+                event = pygame.event.Event(CustomEvent.TO_UI, {"action": "add_inventory", "object": InventoryObject("test4", "Test 4", image=image)})
+                pygame.event.post(event)
+                event = pygame.event.Event(CustomEvent.TO_UI, {"action": "add_inventory", "object": InventoryObject("test4", "Test 4", image=image)})
                 pygame.event.post(event)
 
         elif event.type == CustomEvent.FROM_UI:

@@ -36,13 +36,21 @@ async def main():
         game_info.handle_mouselocation(pygame.mouse.get_pos())
 
         # Process player inputs and events. 
+        i = 0
         while True:
             for event in pygame.event.get():
                 game_info.handle_event(event)
+                i += 1
             
             # Events might have been generated above. Check to see if the 
             # event queue if empty, and only proceed if it is. 
             if not pygame.event.peek():
+                break
+
+            # Safety for some weird edge case. 
+            # Loops without this worry me. 
+            if i > 100000:
+                print("Too many events per frame!")
                 break
     
         #Stuff to be run every frame

@@ -114,8 +114,11 @@ class LayeredSprite(pygame.sprite.Sprite):
         return self._image.mask
     
     def update_image(self, new_image:pygame.Surface):
+        if new_image is None:
+            self.normal_image = self.empty_surface
+            self.normal_surface = None # Triggers rebuild on next update. 
 
-        self.normal_image = new_image
+        self.normal_image = new_image 
         if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
             self.normal_image = self._scale_image(self.normal_image)
 

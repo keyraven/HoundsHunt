@@ -1,6 +1,7 @@
 import scripts.rooms.room as r
 from scripts.rooms.startroom import StartRoom
 from scripts.rooms.room1 import Room1
+from scripts.rooms.room2 import Room2
 from scripts.fonts import Fonts
 import pygame
 from scripts.interactable import Interactable
@@ -8,7 +9,8 @@ from scripts.button import Button
 from scripts.custiom_events import CustomEvent
 from scripts.layeredsprite import LayeredSprite
 from scripts.textbox import TextBox
-import random
+from scripts.inventoryobject import InventoryObject
+from math import ceil
 
 """
 Holds all info regarding the game-state. 
@@ -21,7 +23,8 @@ class Game:
         self.i = 0
         self.rooms = {
             "start_room": StartRoom,
-            "room1": Room1
+            "room1": Room1,
+            "room2": Room2,
         }
         self.inventory = []
         self.active_item = None
@@ -30,11 +33,19 @@ class Game:
         
         self.ui_sprites = pygame.sprite.LayeredUpdates()
         self.ui_open = False
+        self.inventory_open = False
 
         self.speak_stack = []
         self.speak_index = 0
-        self.speak_box_hitbox = None
         
+        # Interactables
+        self.speak_box_hitbox = None
+        self.inventory_expand_button = None
+        self.inventory_compact_button = None
+        
+        #UI Parameters:
+        self.inventory_page = 0
+
         return
 
     """Loads game from file"""
@@ -66,23 +77,35 @@ class Game:
 
     def handle_mouselocation(self, mouseLocation:tuple):
         """Allows objects to react to hover """
-        
+                
         hit = False
-        for interactable in self.ui_sprites:
+        for interactable in self.ui_sprites.sprites()[::-1]:
+            if hit:
+                try:
+                    interactable.set_hover_state(False)
+                except AttributeError:
+                    pass
+                continue
+
             try:
-                hit = interactable.check_hover_state(mouseLocation)
+                hit = interactable.set_hover_state_from_pos(mouseLocation)
             except AttributeError:
                 pass
+
+        hit = False
+        for interactable in self.room_sprites.sprites()[::-1]:
             if hit:
-                return
-        
-        for interactable in self.room_sprites:
+                try:
+                    interactable.set_hover_state(False)
+                except AttributeError:
+                    pass
+                continue
+
             try:
-                hit = interactable.check_hover_state(mouseLocation)
+                hit = interactable.set_hover_state_from_pos(mouseLocation)
             except AttributeError:
                 pass
-            if hit:
-                return
+            
 
     def update_speak_theme(self, new_theme):
 
@@ -187,8 +210,46 @@ class Game:
         }
         self.inventory_box_inner = LayeredSprite(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 90-2*border_size), 
                                                  self.ui_sprites, theme=theme)
+        self.inventory_box_image = LayeredSprite(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 80), 
+                                                 self.ui_sprites)
+        
+        
+        
+        theme = {
+            "shape": "poly((0,20)(60,20)(30,0))",
+            "background": "#363020",
+            "hover_background": "#605C4E"
+        }
+        self.inventory_expand_button = Interactable(pygame.Rect(555, 240, 60, 20), self.ui_sprites, theme=theme)
         
         self.ui_open = True
+
+
+        theme = {
+            "background": "#302C1F",
+        }
+        self.inventory_background = LayeredSprite(pygame.Rect(540, 13, 90, 251), self.ui_sprites, theme=theme, visible=False)
+        
+        theme = {
+            "background": "#A49966",
+            "hover_background": "#DBCC8B"
+        }
+        self.inventory_compact_button = Interactable(pygame.Rect(620, 10, 13, 13), self.ui_sprites, theme=theme, visible=False, layer = 5)
+
+        theme = {
+            "background": "#605C4E",
+            "hover_background": "#79735E",
+            "disabled_background": "#72716E"
+        }
+        self.inventory_slot_backgrounds = [Interactable(pygame.Rect(545, 16, 80, 80), self.ui_sprites, theme=theme, layer=1, visible=False),
+                                           Interactable(pygame.Rect(545, 99, 80, 80), self.ui_sprites, theme=theme, layer=1, visible=False),
+                                           Interactable(pygame.Rect(545, 182, 80, 80), self.ui_sprites, theme=theme, layer=1, visible=False)]
+
+        self.inventory_images = [LayeredSprite(pygame.Rect(545, 16, 80, 80), self.ui_sprites, layer=2, visible=False),
+                                 LayeredSprite(pygame.Rect(545, 99, 80, 80), self.ui_sprites, layer=2, visible=False),
+                                 LayeredSprite(pygame.Rect(545, 182, 80, 80), self.ui_sprites, layer=2, visible=False)]
+        
+        self.update_draw_inventory()
 
     def teardown_ui(self):
         if not self.ui_open:
@@ -224,6 +285,10 @@ class Game:
                 else:
                     if self.proceed_speak():
                         pygame.event.post(pygame.event.Event(CustomEvent.FROM_UI, {"action": "speak_over"}))
+            elif event.sprite == self.inventory_expand_button:
+                self.set_inventory_visablity(True)
+            elif event.sprite == self.inventory_compact_button:
+                self.set_inventory_visablity(False)
         elif event.type == CustomEvent.TO_UI:
             if event.action == "speak":
                 hit = True
@@ -236,6 +301,12 @@ class Game:
             elif event.action == "open":
                 hit = True
                 self.setup_ui()
+            elif event.action == "add_inventory":
+                self.add_to_inventory(event.object)
+                self.update_draw_inventory()
+            elif event.action == "remove_inventory":
+                self.remove_from_inventory(event.object)
+                self.update_draw_inventory()
 
         return hit
     
@@ -274,6 +345,82 @@ class Game:
         
         self.current_room.handle_event(event, self.active_item)
 
-        
-        
+    def set_inventory_visablity(self, visablity):      
+        self.inventory_open = visablity
 
+        self.inventory_expand_button.visible = not visablity
+        self.inventory_background.visible = visablity
+        self.inventory_compact_button.visible = visablity
+        for object in self.inventory_slot_backgrounds:
+            object.visible = visablity
+        for object in self.inventory_images:
+            object.visible = visablity
+
+        if visablity:
+            self.inventory_page = 0
+        
+        self.update_draw_inventory()
+
+    def add_to_inventory(self, new_object:InventoryObject):
+        if type(new_object) is not InventoryObject:
+            print(f"Tried to add \"{new_object}\" to inventory, but it's not an inventory object.")
+            return
+        
+        self.inventory.append(new_object)
+        if len(self.inventory) == 1:
+            self.active_item = new_object
+
+    def remove_from_inventory(self, remove_object):
+        """Takes ID or InventoryObject"""
+
+        if type(remove_object) is str:
+            for object in self.inventory:
+                if remove_object == object.id:
+                    remove_object = object
+                    break
+            else:
+                return
+        
+        if remove_object in self.inventory:
+            self.inventory.remove(remove_object)
+        else:
+            return
+        
+        if remove_object == self.active_item:
+            self.active_item = None
+
+        self.update_draw_inventory()
+
+    def update_draw_inventory(self):
+        if not self.ui_open:
+            return
+
+        if self.active_item is None:
+            self.inventory_box_image.update_image(LayeredSprite.empty_surface)
+        else:
+            self.inventory_box_image.update_image(self.active_item.image)
+        
+        if not self.inventory_open:
+            return
+        
+        max_page = ceil(len(self.inventory) / 3)
+        if self.inventory_page > max_page:
+            self.inventory_page = max_page
+        elif self.inventory_page < 0:
+            self.inventory_page = 0
+
+
+        for i in range(0, 3):
+            try:
+                inventory_object = self.inventory[i + self.inventory_page*3]
+            except IndexError:
+                self.inventory_slot_backgrounds[i].disabled = True
+                self.inventory_images[i].update_image(LayeredSprite.empty_surface)
+                self.inventory_slot_backgrounds[i].id = None
+                continue
+
+            self.inventory_slot_backgrounds[i].disabled = False
+            self.inventory_images[i].update_image(inventory_object.image)
+            self.inventory_slot_backgrounds[i].id = inventory_object # Not ideal.  HACKY
+        
+# Utility Functions
