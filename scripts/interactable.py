@@ -39,7 +39,7 @@ class Interactable(LayeredSprite):
 
         self.hotkey = hotkey
         self.active =  False
-        self.hover = False
+        self._hover = False
         self.disabled = False
        
         self.hover_background = self.theme.get("hover_background", self.background)
@@ -50,6 +50,7 @@ class Interactable(LayeredSprite):
         self.active_image = self.theme.get("active_image", self.hover_image)
         self.disabled_image = self.theme.get("disabled_image", self.normal_image)
 
+        self.send_hover_events = False
     
         if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
             self.hover_image = self._scale_image(self.hover_image)
@@ -59,6 +60,27 @@ class Interactable(LayeredSprite):
         self.hover_surface:LayeredSprite.SurfaceWithMask = None
         self.active_surface:LayeredSprite.SurfaceWithMask = None
         self.disabled_surface:LayeredSprite.SurfaceWithMask = None
+
+    @property
+    def hover(self):
+        return self._hover
+    
+    @hover.setter
+    def hover(self, value):
+        
+        if self.send_hover_events and self._hover != value:
+            if value:
+                event_type = CustomEvent.BUTTON_HOVER
+            else:
+                event_type = CustomEvent.BUTTON_UNHOVER
+
+            pygame.event.post(
+                pygame.Event(event_type, {"sprite": self})
+            )
+            
+        self._hover = value
+
+
 
     def build_surfaces(self) -> pygame.Surface:
         super().build_surfaces()
@@ -87,7 +109,7 @@ class Interactable(LayeredSprite):
         if self.disabled_background == self.background and self.disabled_image == self.normal_image:
             self.disabled_surface = self.normal_surface
         else:
-            disabled_surface = pygame.Surface((self.rect.width, self.rect.height))
+            disabled_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
             self._draw_background_shape(disabled_surface, self.disabled_background)
             if self.disabled_image is not None:
                 disabled_surface.blit(self.disabled_image, (self.rect.width/2 - self.disabled_image.get_width()/2,

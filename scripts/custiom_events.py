@@ -9,5 +9,7 @@ class CustomEvent():
     TO_UI = pygame.event.custom_type()
     FROM_UI = pygame.event.custom_type()
     CHANGE_ROOM = pygame.event.custom_type()
+    BUTTON_HOVER = pygame.event.custom_type()
+    BUTTON_UNHOVER = pygame.event.custom_type()
 
 
