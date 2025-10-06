@@ -141,6 +141,8 @@ class TextBox(LayeredSprite):
                 location = (xpadding, y)
             
             surface.blit(image, location)
+            
+            #Keeps track of the area covered by text. 
             if line == 1:
                 text_rect.left = location[0]
                 text_rect.top =  location[1]
@@ -155,6 +157,14 @@ class TextBox(LayeredSprite):
             text = text[i:]
 
             line += 1
+
+        # Add Glow Effect
+        if glow: 
+            glow_background = pygame.transform.solid_overlay(surface.copy().convert_alpha(), glow)
+            glow_background = pygame.transform.box_blur(glow_background, glow_radius)
+            pygame.image.save(glow_background, "test.png")
+            glow_background.blit(surface)
+            surface = glow_background
 
         return surface, text, text_rect
 

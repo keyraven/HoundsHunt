@@ -81,7 +81,6 @@ class Interactable(LayeredSprite):
         self._hover = value
 
 
-
     def build_surfaces(self) -> pygame.Surface:
         super().build_surfaces()
 
@@ -91,8 +90,8 @@ class Interactable(LayeredSprite):
             hover_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
             self._draw_background_shape(hover_surface, self.hover_background)
             if self.hover_image is not None:
-                hover_surface.blit(self.hover_image, (self.rect.width.get_width()/2 - self.hover_image.get_width()/2,
-                                                      self.rect.height.get_height()/2 - self.hover_image.get_height()/2))
+                hover_surface.blit(self.hover_image, (self.rect.width/2 - self.hover_image.get_width()/2,
+                                                      self.rect.height/2 - self.hover_image.get_height()/2))
             self.hover_surface = self.SurfaceWithMask(hover_surface, create_mask=self.collide_on_vis)
                 
         if self.active_background == self.hover_background and self.active_image == self.hover_image:
@@ -101,8 +100,8 @@ class Interactable(LayeredSprite):
             active_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
             self._draw_background_shape(active_surface, self.active_background)
             if self.active_image is not None:
-                active_surface.blit(self.active_image, (self.rect.width.get_width()/2 - self.active_image.get_width()/2,
-                                                         self.rect.height.get_height()/2 - self.active_image.get_height()/2))
+                active_surface.blit(self.active_image, (self.rect.width/2 - self.active_image.get_width()/2,
+                                                         self.rect.height/2 - self.active_image.get_height()/2))
             self.active_surface = self.SurfaceWithMask(active_surface, create_mask=self.collide_on_vis)
             
                 
@@ -146,7 +145,9 @@ class Interactable(LayeredSprite):
         if self.disabled:
             self.hover = False
             self.active = False
-            return self.hover
+            if self.collidepoint(mouse_location):
+                return True
+            return False
         
         if self.collidepoint(mouse_location):
             self.hover = True

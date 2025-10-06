@@ -44,6 +44,8 @@ class Game:
         self.inventory_compact_button = None
         self.inventory_scroll_down = None
         self.inventory_scroll_up = None
+        self.inventory_slot_backgrounds = []
+        self.inventory_deselect_active = None
         
         #UI Parameters:
         self.inventory_page = 0
@@ -174,6 +176,12 @@ class Game:
         if self.ui_open:
             return
         
+        # Please ignore how ugly this function is. please. 
+
+        #Load Images
+        x_16 = pygame.image.load("resources/UI/x_16.png")
+        x_13 = pygame.image.load("resources/UI/x_13.png")
+
         l = 0
         
         # SETUP SPEECH BOX  ------------------------------------------------------------------------
@@ -210,12 +218,19 @@ class Game:
         theme = {
             "background":  "#605C4E",
         }
-        self.inventory_box_inner = LayeredSprite(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 90-2*border_size), 
+        self.inventory_box_inner = Interactable(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 90-2*border_size), 
                                                  self.ui_sprites, theme=theme)
+        self.inventory_box_inner.send_hover_events = True
+
         self.inventory_box_image = LayeredSprite(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 80), 
                                                  self.ui_sprites)
         
-        
+        theme = {
+            "background": "#A49966",
+            "hover_background": "#DBCC8B",
+            "image": x_16
+        }
+        self.inventory_deselect_active = Interactable(pygame.Rect(609, 269, 16, 16), self.ui_sprites, theme=theme, layer=2)
         
         theme = {
             "shape": "poly((0,20)(60,20)(30,0))",
@@ -234,7 +249,8 @@ class Game:
         
         theme = {
             "background": "#A49966",
-            "hover_background": "#DBCC8B"
+            "hover_background": "#DBCC8B",
+            "image": x_13,
         }
         self.inventory_compact_button = Interactable(pygame.Rect(620, 10, 13, 13), self.ui_sprites, theme=theme, visible=False, layer = 5)
 
@@ -251,15 +267,15 @@ class Game:
             x.send_hover_events = True
 
         theme = {
-            "glow" : "#FFFFFF",
-            "glow_radius": 1,
             "text_color": "#000000",
             "horizontal_alignment": "center",
             "vertical_alignment": "center"
         }
-        self.inventory_object_names = [TextBox(pygame.Rect(545, 17, 80, 80), "", Fonts.mont_heavy_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False),
-                                       TextBox(pygame.Rect(545, 100, 80, 80), "", Fonts.mont_heavy_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False),
-                                       TextBox(pygame.Rect(545, 183, 80, 80), "", Fonts.mont_heavy_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False)]
+        self.inventory_object_names = [TextBox(pygame.Rect(545, 17, 80, 80), "", Fonts.preview_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False),
+                                       TextBox(pygame.Rect(545, 100, 80, 80), "", Fonts.preview_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False),
+                                       TextBox(pygame.Rect(545, 183, 80, 80), "", Fonts.preview_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False)]
+        self.active_item_text = TextBox(pygame.Rect(540+border_size, 264+border_size, 90-2*border_size, 90-2*border_size), "", Fonts.preview_15, self.ui_sprites, layer=6, 
+                                        antialias=False, visible=False, theme=theme)
 
         self.inventory_images = [LayeredSprite(pygame.Rect(545, 17, 80, 80), self.ui_sprites, layer=2, visible=False),
                                  LayeredSprite(pygame.Rect(545, 100, 80, 80), self.ui_sprites, layer=2, visible=False),
@@ -333,20 +349,25 @@ class Game:
             elif event.sprite == self.inventory_scroll_up:
                 self.inventory_page -= 1
                 self.update_draw_inventory()
-
-        elif event.type == CustomEvent.BUTTON_HOVER:
-            try:
+            elif event.sprite in self.inventory_slot_backgrounds:
                 index = self.inventory_slot_backgrounds.index(event.sprite)
-            except ValueError:
-                pass
-            else:
+                self.active_item = self.inventory[index]
+                self.update_draw_inventory()
+            elif event.sprite == self.inventory_deselect_active:
+                self.active_item = None
+                self.update_draw_inventory()
+        elif event.type == CustomEvent.BUTTON_HOVER:
+            if event.sprite == self.inventory_box_inner:
+                self.active_item_text.visible = True
+            elif event.sprite in self.inventory_slot_backgrounds:
+                index = self.inventory_slot_backgrounds.index(event.sprite)
                 self.inventory_object_names[index].visible = True
         elif event.type == CustomEvent.BUTTON_UNHOVER:
-            try:
+            if event.sprite == self.inventory_box_inner:
+                self.active_item_text.visible = False
+            elif event.sprite in self.inventory_slot_backgrounds:
                 index = self.inventory_slot_backgrounds.index(event.sprite)
-            except ValueError:
-                pass
-            else:
+                self.inventory_object_names[index].visible = True
                 self.inventory_object_names[index].visible = False
         elif event.type == CustomEvent.TO_UI:
             if event.action == "speak":
@@ -423,8 +444,8 @@ class Game:
             return
         
         self.inventory.append(new_object)
-        if len(self.inventory) == 1:
-            self.active_item = new_object
+        #if len(self.inventory) == 1:
+        #    self.active_item = new_object
 
     def remove_from_inventory(self, remove_object):
         """Takes ID or InventoryObject"""
@@ -453,25 +474,29 @@ class Game:
 
         if self.active_item is None:
             self.inventory_box_image.update_image(LayeredSprite.empty_surface)
+            self.active_item_text.set_text("")
+            self.inventory_deselect_active.visible = False
         else:
             self.inventory_box_image.update_image(self.active_item.image)
+            self.active_item_text.set_text(self.active_item.name)
+            self.inventory_deselect_active.visible = True
         
         if not self.inventory_open:
             return
         
-        max_page = ceil(len(self.inventory) / 3)
+        max_page = len(self.inventory) - 3 + 1 if len(self.inventory) > 4 else 0
         if self.inventory_page > max_page:
             self.inventory_page = max_page
         elif self.inventory_page < 0:
             self.inventory_page = 0
 
         self.inventory_scroll_up.disabled = self.inventory_page <= 0
-        self.inventory_scroll_down.disabled = self.inventory_page >= max_page - 1
+        self.inventory_scroll_down.disabled = self.inventory_page >= max_page 
 
 
         for i in range(0, 3):
             try:
-                inventory_object = self.inventory[i + self.inventory_page*3]
+                inventory_object = self.inventory[i + self.inventory_page]
             except IndexError:
                 self.inventory_slot_backgrounds[i].disabled = True
                 self.inventory_images[i].update_image(LayeredSprite.empty_surface)
