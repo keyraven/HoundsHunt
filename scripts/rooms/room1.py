@@ -32,7 +32,8 @@ class Room1(Room):
             if event.sprite == self.glitter:
 
                 event = pygame.event.Event(CustomEvent.TO_UI, {"action":"speak", "data":[("hound", "HOUND: What is this? Something moves beyond the veil. "), 
-                                                                                            (None, "(hunger drives you forward. you rip open the rift, and throw yourself inward)")]})
+                                                                                            (None, "(hunger drives you forward. you rip open the rift, and throw yourself inward)")],
+                                                                "echo": 1})
                 pygame.event.post(event)
 
 
@@ -50,5 +51,5 @@ class Room1(Room):
                 pygame.event.post(event)
 
         elif event.type == CustomEvent.FROM_UI:
-            if event.action == "speak_over":
-                self.glitter.speed = 2
+            if event.action == "speak_over" and event.echo == 1:
+                pygame.event.post(pygame.Event(CustomEvent.CHANGE_ROOM, {"room": "room2"}))

@@ -37,6 +37,7 @@ class Game:
 
         self.speak_stack = []
         self.speak_index = 0
+        self.speak_echo = None
         
         # Interactables
         self.speak_box_hitbox = None
@@ -58,6 +59,9 @@ class Game:
 
     @property 
     def room_sprites(self) -> pygame.sprite.Group:
+        if self.current_room.all_sprites is None:
+            pass
+
         return self.current_room.all_sprites
         
     def draw(self, pixel_screen: pygame.Surface):
@@ -331,13 +335,14 @@ class Game:
 
     def _handle_ui_event(self, event:pygame.Event) -> bool:
 
-        if event.type == CustomEvent.BUTTON_KEYDOWN:
+        if event.type == CustomEvent.BUTTON_KEYUP:
             if event.sprite == self.speak_box_hitbox:
                 if not self.speak_text_box.animation_over(): 
                     self.speak_text_box.end_animation()
                 else:
                     if self.proceed_speak():
-                        pygame.event.post(pygame.event.Event(CustomEvent.FROM_UI, {"action": "speak_over"}))
+                        pygame.event.post(pygame.event.Event(CustomEvent.FROM_UI, {"action": "speak_over", "echo": self.speak_echoback}))
+                        self.speak_echoback = None
             elif event.sprite == self.inventory_expand_button:
                 self.inventory_page = 0
                 self.set_inventory_visablity(True)
@@ -371,15 +376,13 @@ class Game:
                 self.inventory_object_names[index].visible = False
         elif event.type == CustomEvent.TO_UI:
             if event.action == "speak":
-                hit = True
                 self.speak_stack = event.data
+                self.speak_echoback = event.echo
                 self.speak_index = 0
                 self.proceed_speak()
             elif event.action == "close":
-                hit = True
                 self.teardown_ui()
             elif event.action == "open":
-                hit = True
                 self.setup_ui()
             elif event.action == "add_inventory":
                 self.add_to_inventory(event.object)
@@ -388,8 +391,6 @@ class Game:
                 self.remove_from_inventory(event.object)
                 self.update_draw_inventory()
 
-        return
-    
     def handle_event(self, event:pygame.Event):
         """First Stop for Events. Calls other event handlers. """
         
