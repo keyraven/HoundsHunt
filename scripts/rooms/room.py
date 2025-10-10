@@ -54,14 +54,14 @@ class View:
         self.left_arrow_rect = pygame.Rect(14, 28, 38, 202)
         self.left_arrow_theme = {
             "shape": "poly((38,0)(28, 101)(38,202)(0,101))",
-            "background": "#363020",
+            "background": "#6B573D",
             "hover_background": "#93803E",
             "disabled_background": "#1B1911",
         }
         self.right_arrow_rect = pygame.Rect(588, 28, 38, 202)
         self.right_arrow_theme = {
             "shape": "poly((0,0)(10, 101)(0,202)(38,101))",
-            "background": "#363020",
+            "background": "#6B573D",
             "hover_background": "#93803E",
             "disabled_background": "#1B1911",
         }

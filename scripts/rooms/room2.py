@@ -17,14 +17,18 @@ class Room2(Room):
         view2 = View(view2_background, 2)
         view3_background = pygame.image.load("resources/room2/view3.png")
         view3 = View(view3_background, 3)
+        view4_background = pygame.image.load("resources/room2/view4.png")
+        view4 = View(view4_background, 4)
 
         # Connections
         view1.right = view2      
         view1.left = view3
         view2.right = view3
         view2.left = view1
-        view3.right = view1
+        view3.right = view4
         view3.left = view2
+        view4.right = view1
+        view4.left = view3
 
         self.current_view = view1
         self.current_view.show()
@@ -63,10 +67,15 @@ class Room2(Room):
         return
 
     def build_view_1(all_sprites):
-        
-        theme = {
-            "background": "black"
-        }
-        Interactable(pygame.Rect(50,50,50,50), all_sprites, theme=theme)
+        return
+    
+    def build_view_2(all_sprites):
+        return
+    
+    def build_view_3(all_sprites):
+        return
+    
+    def build_view_4(all_sprites):
+        return
         
     
