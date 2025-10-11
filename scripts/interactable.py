@@ -26,10 +26,10 @@ Theme Parameters:
 
 class Interactable(LayeredSprite):
 
-    theme_defaults = {
+    theme_defaults = LayeredSprite.theme_defaults | {
         "background": "#00000000",
         "shape": "rect",
-        "scale_image": False
+        "scale_image": False,
     }
 
     def __init__(self, rect:pygame.Rect, groups = (), hotkey:int = None, theme:dict = None, layer:int = 0, 
@@ -41,22 +41,8 @@ class Interactable(LayeredSprite):
         self.active =  False
         self._hover = False
         self.disabled = False
-       
-        self.hover_background = self.theme.get("hover_background", self.background)
-        self.active_background = self.theme.get("active_background", self.hover_background)
-        self.disabled_background = self.theme.get("disabled_background", self.background)
-
-        self.hover_image = self.theme.get("hover_image", self.normal_image)
-        self.active_image = self.theme.get("active_image", self.hover_image)
-        self.disabled_image = self.theme.get("disabled_image", self.normal_image)
-
         self.send_hover_events = False
     
-        if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
-            self.hover_image = self._scale_image(self.hover_image)
-            self.active_image = self._scale_image(self.active_image)
-            self.disabled_image = self._scale_image(self.disabled_image)
-
         self.hover_surface:LayeredSprite.SurfaceWithMask = None
         self.active_surface:LayeredSprite.SurfaceWithMask = None
         self.disabled_surface:LayeredSprite.SurfaceWithMask = None
@@ -80,36 +66,63 @@ class Interactable(LayeredSprite):
             
         self._hover = value
 
+    def update_theme(self, new_theme, clear_old=False):
+        super().update_theme(new_theme, clear_old)
+    
+        self.hover_background = self.theme.get("hover_background", self.background)
+        self.active_background = self.theme.get("active_background", self.hover_background)
+        self.disabled_background = self.theme.get("disabled_background", self.background)
+
+        self.hover_image = self.theme.get("hover_image", self.normal_image)
+        self.active_image = self.theme.get("active_image", self.hover_image)
+        self.disabled_image = self.theme.get("disabled_image", self.normal_image)
+
+        self.hover_outline = self.theme.get("hover_outline", self.outline)
+        self.hover_outline_color = self.theme.get("hover_outline_color", self.outline_color)
+        self.active_outline = self.theme.get("hover_outline", self.hover_outline)
+        self.active_outline_color = self.theme.get("hover_outline_color", self.hover_outline_color)
+        self.disabled_outline = self.theme.get("disabled_outline", self.outline)
+        self.disabled_outline_color = self.theme.get("disabled_outline_color", self.outline_color)
+
+        if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
+            self.hover_image = self._scale_image(self.hover_image)
+            self.active_image = self._scale_image(self.active_image)
+            self.disabled_image = self._scale_image(self.disabled_image)
+
+
 
     def build_surfaces(self) -> pygame.Surface:
         super().build_surfaces()
 
-        if self.hover_background == self.background and self.hover_image == self.normal_image:
+        if self.hover_background == self.background and self.hover_image == self.normal_image and \
+                self.hover_outline == self.outline and self.hover_outline_color == self.outline_color:
             self.hover_surface = self.normal_surface
         else:
             hover_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
-            self._draw_background_shape(hover_surface, self.hover_background)
+            self._draw_background_shape(hover_surface, self.hover_background, self.hover_outline, self.hover_outline_color)
             if self.hover_image is not None:
                 hover_surface.blit(self.hover_image, (self.rect.width/2 - self.hover_image.get_width()/2,
                                                       self.rect.height/2 - self.hover_image.get_height()/2))
             self.hover_surface = self.SurfaceWithMask(hover_surface, create_mask=self.collide_on_vis)
                 
-        if self.active_background == self.hover_background and self.active_image == self.hover_image:
+        if self.active_background == self.hover_background and self.active_image == self.hover_image and  \
+                self.active_outline == self.hover_outline and self.active_outline_color == self.hover_outline_color:
             self.active_surface = self.hover_surface
         else:
             active_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
-            self._draw_background_shape(active_surface, self.active_background)
+            self._draw_background_shape(active_surface, self.active_background, self.active_outline, self.active_outline_color)
             if self.active_image is not None:
                 active_surface.blit(self.active_image, (self.rect.width/2 - self.active_image.get_width()/2,
                                                          self.rect.height/2 - self.active_image.get_height()/2))
             self.active_surface = self.SurfaceWithMask(active_surface, create_mask=self.collide_on_vis)
             
                 
-        if self.disabled_background == self.background and self.disabled_image == self.normal_image:
+        if self.disabled_background == self.background and self.disabled_image == self.normal_image and \
+                 self.disabled_outline == self.outline and self.disabled_outline_color == self.outline_color:
             self.disabled_surface = self.normal_surface
         else:
             disabled_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
-            self._draw_background_shape(disabled_surface, self.disabled_background)
+            self._draw_background_shape(disabled_surface, self.disabled_background, self.disabled_outline, self.disabled_outline_color)
             if self.disabled_image is not None:
                 disabled_surface.blit(self.disabled_image, (self.rect.width/2 - self.disabled_image.get_width()/2,
                                                             self.rect.height/2 - self.disabled_image.get_height()/2))

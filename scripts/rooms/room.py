@@ -8,7 +8,7 @@ class Room:
         self.background = None
         self._all_sprites = pygame.sprite.LayeredUpdates()
 
-        self.current_view:View = None
+        self._current_view:View = None
         pass
     
     @property
@@ -17,6 +17,16 @@ class Room:
             return self._all_sprites
         else:
             return self.current_view.all_sprites
+        
+    @property
+    def current_view(self):
+        return self._current_view
+    
+    @current_view.setter
+    def current_view(self, value):
+        self._current_view.hide()
+        self._current_view = value
+        self._current_view.show()
     
     def setup(self):
         return
@@ -46,31 +56,51 @@ class View:
         self.right:View = None
         self.left:View = None
         self.down:View = None
+        self.up:View = None
 
         self.right_arrow = None
         self.left_arrow = None
         self.down_arrow = None
+        self.up_arrow = None
+
+        arrow_colors = {
+            "background": "#6B573D",
+            "outline":3,
+            "outline_color": "#1D150C",
+            "hover_outline_color": "#523C23",
+            "hover_background": "#93803E",
+            "disabled_background": "#1B1911",
+            }
 
         self.left_arrow_rect = pygame.Rect(14, 28, 38, 202)
-        self.left_arrow_theme = {
-            "shape": "poly((38,0)(28, 101)(38,202)(0,101))",
-            "background": "#6B573D",
-            "hover_background": "#93803E",
-            "disabled_background": "#1B1911",
+        self.left_arrow_theme = arrow_colors | {
+            "shape": "poly((38,0)(28, 101)(38,202)(2,101))",
         }
         self.right_arrow_rect = pygame.Rect(588, 28, 38, 202)
-        self.right_arrow_theme = {
-            "shape": "poly((0,0)(10, 101)(0,202)(38,101))",
-            "background": "#6B573D",
-            "hover_background": "#93803E",
-            "disabled_background": "#1B1911",
+        self.right_arrow_theme = arrow_colors | {
+            "shape": "poly((0,0)(10, 101)(0,202)(36,101))",
         }
-        self.down_arrow_rect = pygame.Rect()
-        self.down_arrow_theme = {
-            "background": ""
+        self.down_arrow_rect = pygame.Rect(219, 308, 202, 38)
+        self.down_arrow_theme = arrow_colors | {
+            "shape": "poly((0,0)(101, 10)(202,0)(101,36))",
+        }
+        self.up_arrow_rect = pygame.Rect(219, 14, 202, 38)
+        self.up_arrow_theme = arrow_colors | {
+            "shape": "poly((0,38)(101, 28)(202,38)(101,2))",
         }
 
+        self.arrow_layer = 20
+
         self.hide()
+
+    def update_arrow_theme(self, value:dict):
+
+        self.up_arrow_theme.update(value)
+        self.down_arrow_theme.update(value)
+        self.right_arrow_theme.update(value)
+        self.left_arrow_theme.update(value)
+
+        self.trigger_rebuild()
 
     def draw_background(self, draw_surface):
         draw_surface.blit(self.background, (0,0))
@@ -81,13 +111,16 @@ class View:
         # Set Arrows
         if self.right: 
             self.right_arrow = Interactable(self.right_arrow_rect, self.all_sprites, 
-                                            theme=self.right_arrow_theme, layer = 20, collide_on_vis=True)
+                                            theme=self.right_arrow_theme, layer = self.arrow_layer, collide_on_vis=True)
         if self.left:
             self.left_arrow = Interactable(self.left_arrow_rect, self.all_sprites, 
-                                           theme=self.left_arrow_theme, layer = 20, collide_on_vis=True)
+                                           theme=self.left_arrow_theme, layer = self.arrow_layer, collide_on_vis=True)
         if self.down:
             self.down_arrow = Interactable(self.down_arrow_rect, self.all_sprites, 
-                                           theme=self.down_arrow_theme, layer = 20, collide_on_vis=True)
+                                           theme=self.down_arrow_theme, layer = self.arrow_layer, collide_on_vis=True)
+        if self.up:
+            self.up_arrow = Interactable(self.up_arrow_rect, self.all_sprites, 
+                                           theme=self.up_arrow_theme, layer = self.arrow_layer, collide_on_vis=True)
             
         if self.build_function is not None:
             self.build_function(self.all_sprites)
@@ -102,6 +135,11 @@ class View:
     def hide(self):
         for x in self.all_sprites:
             x.visible = False
+
+    def trigger_rebuild(self):
+        """Triggers rebuild on next show"""
+        self.built = False
+        self.kill()
 
     def kill(self):
         for x in self.all_sprites:
@@ -118,6 +156,8 @@ class View:
                 return self.left
             elif event.sprite == self.down_arrow:
                 return self.down
+            elif event.sprite == self.up_arrow:
+                return self.up
         
         return None
     

@@ -3,7 +3,7 @@ import pygame
 
 class TextBox(LayeredSprite):
 
-    theme_defaults = {
+    theme_defaults = LayeredSprite.theme_defaults | {
         "background": "#00000000",
         "text_color": "#000000FF",
         "shape": "rect",

@@ -4,7 +4,7 @@ import pygame
 
 class Button(Interactable):
 
-    theme_defaults = {
+    theme_defaults = Interactable.theme_defaults | {
         "background": "#00000000",
         "text_color":  "#000000FF",
         "hover_text_color": "#313131FF",

@@ -7,7 +7,9 @@ class LayeredSprite(pygame.sprite.Sprite):
     theme_defaults = {
         "background": "#00000000",
         "shape": "rect",
-        "scale_image": True
+        "scale_image": True,
+        "outline": 0,
+        "outline_color": "white"
     }
 
     empty_surface = pygame.Surface((0,0))
@@ -86,11 +88,8 @@ class LayeredSprite(pygame.sprite.Sprite):
                 self.theme[x] = self.theme[x].strip()
 
         self.theme = {}
-        self.update_theme(theme)
-
         self.normal_image = self.theme.get("image") if image is None else image
-        if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
-            self._scale_image(self.normal_image)
+        self.update_theme(theme)
 
         self.normal_surface:LayeredSprite.SurfaceWithMask = None
 
@@ -134,8 +133,12 @@ class LayeredSprite(pygame.sprite.Sprite):
             self.theme.update(new_theme)
 
         self.background = self.theme.get("background", self.theme_defaults["background"])
-
         self.shape = self.theme.get("shape", self.theme_defaults["shape"])
+        self.outline = self.theme.get("outline", self.theme_defaults["outline"])
+        self.outline_color = self.theme.get("outline_color", self.theme_defaults["outline_color"])
+        self.normal_image = self.theme.get("image", None if clear_old else self.normal_image) # This is an odd one out. 
+        if self.theme.get("scale_image", self.theme_defaults["scale_image"]):
+            self._scale_image(self.normal_image)
 
         self.normal_surface = None # This trigger re-drawing of the surfaces. 
 
@@ -150,18 +153,31 @@ class LayeredSprite(pygame.sprite.Sprite):
                 scale = self.rect.height/surface.get_height()
             surface = pygame.transform.scale_by(surface, scale, )
 
-        return surface
-
-    def _draw_background_shape(self, surface_to_draw:pygame.Surface, color) -> pygame.Surface:
+        return surface   
+    
+    def _draw_background_shape(self, surface_to_draw:pygame.Surface, color, outline, outline_color) -> pygame.Surface:
         if self.shape == "rect":
             surface_to_draw.fill(color)
+            if outline:
+                pygame.draw.rect(surface_to_draw, outline_color, 
+                                 surface_to_draw.get_rect(),
+                                outline)
+        
         elif self.shape.startswith("poly"):
             points = []
             for match in re.findall(r"\(([0-9 ]+),([0-9 ]+)\)", self.shape):
                 points.append([int(i.strip()) for i in match])
             pygame.draw.polygon(surface_to_draw, pygame.Color(color), points)
+            if outline:
+                pygame.draw.polygon(surface_to_draw, outline_color,
+                                    points,
+                                    outline)
+            
         elif self.shape == "round":
             pygame.draw.ellipse(surface_to_draw, pygame.Color(color), surface_to_draw.get_rect())
+            if outline:
+                pygame.draw.ellipse(surface_to_draw, outline_color, surface_to_draw.get_rect(), outline)
+
 
         return surface_to_draw
     
@@ -197,7 +213,7 @@ class LayeredSprite(pygame.sprite.Sprite):
     def build_surfaces(self) -> pygame.Surface:
 
         normal_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
-        self._draw_background_shape(normal_surface, self.background)
+        self._draw_background_shape(normal_surface, self.background, self.outline, self.outline_color)
         if self.normal_image is not None:
             normal_surface.blit(self.normal_image, (self.rect.width/2 - self.normal_image.get_width()/2,
                                                     self.rect.height/2 - self.normal_image.get_height()/2))
