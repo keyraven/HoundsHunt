@@ -13,13 +13,14 @@ class TextBox(LayeredSprite):
         "vertical_alignment": "top",
         "scale_image": False,
         "glow": None,
-        "glow_radius": 1
+        "glow_radius": 1,
+        "text_background": None
     }
 
 
     def __init__(self, rect, text:str, text_renderer:pygame.Font, groups = (), layer = 0, antialias:bool = True,
                  theme = None, collide_on_vis = False, mask = None, id=None, visible = True,
-                 animate = False, animate_speed:int = 8):
+                 animate = False, animate_speed:int = 5):
         super().__init__(rect, groups=groups, layer=layer, theme=theme, 
                          collide_on_vis=collide_on_vis, mask=mask, id=id, visible=visible)
     
@@ -33,6 +34,7 @@ class TextBox(LayeredSprite):
         self.vertical_alignment = self.theme.get("vertical_alignment", self.theme_defaults["vertical_alignment"])
         self.glow = self.theme.get("glow", self.theme_defaults["glow"])
         self.glow_radius = self.theme.get("glow_radius", self.theme_defaults["glow_radius"])
+        self.text_background = self.theme.get("text_background", self.theme_defaults["text_background"])
         self.antialias = antialias
         self.animate = animate
         self.animate_speed = animate_speed
@@ -61,7 +63,7 @@ class TextBox(LayeredSprite):
 
         if self.text_renderer is not None:
             text_surface, unblited, text_rect = TextBox.drawText(self.text[:self.display_pos], self.text_color, self.rect, self.text_renderer, self.y_padding, self.x_padding, 
-                                                                 self.antialias, self.horizontal_alignment, self.glow, self.glow_radius)
+                                                                 self.antialias, self.horizontal_alignment, self.glow, self.glow_radius, self.text_background)
 
             if self.vertical_alignment == "top":
                 self.normal_surface.blit(text_surface, (0,0))
@@ -106,7 +108,7 @@ class TextBox(LayeredSprite):
 
 
     def drawText(text:str, color, rect:pygame.Rect, font:pygame.Font, ypadding = 0, xpadding = 0, aa = False,
-                 text_alignment:str = "left", glow = None, glow_radius:int = 1):
+                 text_alignment:str = "left", glow = None, glow_radius:int = 1, background = None):
         surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
         y = ypadding
         lineSpacing = -2
@@ -129,7 +131,7 @@ class TextBox(LayeredSprite):
                 i = text.rfind(" ",0 , i) + 1
 
 
-            image = font.render(text[:i], aa, color)
+            image = font.render(text[:i], aa, color, bgcolor=background)
             
             if text_alignment == "left":
                 location = (xpadding, y)

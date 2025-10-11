@@ -10,7 +10,7 @@ from scripts.custiom_events import CustomEvent
 from scripts.layeredsprite import LayeredSprite
 from scripts.textbox import TextBox
 from scripts.inventoryobject import InventoryObject
-from math import ceil
+from scripts.rooms.info_room import InfoRoom
 
 """
 Holds all info regarding the game-state. 
@@ -23,6 +23,7 @@ class Game:
         self.i = 0
         self.rooms = {
             "start_room": StartRoom,
+            "info_room": InfoRoom,
             "room1": Room1,
             "room2": Room2,
         }
@@ -273,7 +274,8 @@ class Game:
         theme = {
             "text_color": "#000000",
             "horizontal_alignment": "center",
-            "vertical_alignment": "center"
+            "vertical_alignment": "center",
+            "text_background": "grey"
         }
         self.inventory_object_names = [TextBox(pygame.Rect(545, 17, 80, 80), "", Fonts.preview_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False),
                                        TextBox(pygame.Rect(545, 100, 80, 80), "", Fonts.preview_15, self.ui_sprites, layer=3, theme=theme, antialias=False, visible=False),
@@ -445,8 +447,8 @@ class Game:
             return
         
         self.inventory.append(new_object)
-        #if len(self.inventory) == 1:
-        #    self.active_item = new_object
+        if len(self.inventory) == 1:
+            self.active_item = new_object
 
     def remove_from_inventory(self, remove_object):
         """Takes ID or InventoryObject"""

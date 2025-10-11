@@ -37,7 +37,7 @@ class Room1(Room):
                 pygame.event.post(event)
 
 
-                ### TEST TEST TEST
+                """### TEST TEST TEST
                 image = pygame.image.load("resources/objects/test.png")
                 event = pygame.event.Event(CustomEvent.TO_UI, {"action": "add_inventory", "object": InventoryObject("test1", "Test 1", image=image)})
                 pygame.event.post(event)
@@ -49,7 +49,8 @@ class Room1(Room):
                 pygame.event.post(event)
                 event = pygame.event.Event(CustomEvent.TO_UI, {"action": "add_inventory", "object": InventoryObject("test4", "Test 4", image=image)})
                 pygame.event.post(event)
-
+                """
+                
         elif event.type == CustomEvent.FROM_UI:
             if event.action == "speak_over" and event.echo == 1:
                 pygame.event.post(pygame.Event(CustomEvent.CHANGE_ROOM, {"room": "room2"}))

@@ -6,7 +6,7 @@ class AnimatedInteractable(Interactable):
 
     def __init__(self, rect, frames:list, groups = (), hover_frames:list = None, hotkey = None, 
                  layer = 0, repeat:int = -1, speed:int = 1, hover_speed:int = None, theme:dict = None, 
-                 mask:pygame.Mask = None, collide_on_vis:bool = False, id = None, visible:bool = True):
+                 mask:pygame.Mask = None, collide_on_vis:bool = False, id = None, visible:bool = True, delay:int = 0):
         super().__init__(rect, groups=groups, hotkey=hotkey, layer=layer, theme=theme, collide_on_vis=collide_on_vis,
                          id=id, visible=visible)
 
@@ -14,6 +14,8 @@ class AnimatedInteractable(Interactable):
         self.current_frame = 0
         self.max_repeats = repeat
         self.repeats = 0
+        self.delay = delay
+        self.current_delay = delay
 
         self.speed = speed
         self.hover_speed = hover_speed if hover_speed is not None else self.speed
@@ -58,13 +60,21 @@ class AnimatedInteractable(Interactable):
         if frames[self.current_frame].surface is not None:
             self._image.mask_union(frames[self.current_frame].mask)
 
-        if self.i % speed == 0:
+        if self.current_delay > 0:
+            self.current_delay -= 1
+            self.i -= 1 #gross solution. I am tired. 
+        elif self.i % speed == 0 and (self.max_repeats < 0 or self.repeats > self.max_repeats):
             self.current_frame += 1
             if self.current_frame >= len(frames):
                 self.current_frame = 0
                 self.repeats += 1
+                self.current_delay = self.delay
+        
 
         self.i += 1
+
+    def restart_animation(self):
+        self.repeats = 0
 
     def get_frames_dir(file_path:str, file_type:str = "png") -> tuple:
         

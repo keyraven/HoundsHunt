@@ -70,17 +70,17 @@ class Interactable(LayeredSprite):
         super().update_theme(new_theme, clear_old)
     
         self.hover_background = self.theme.get("hover_background", self.background)
-        self.active_background = self.theme.get("active_background", self.hover_background)
+        self.active_background = self.theme.get("active_background", self.background)
         self.disabled_background = self.theme.get("disabled_background", self.background)
 
         self.hover_image = self.theme.get("hover_image", self.normal_image)
-        self.active_image = self.theme.get("active_image", self.hover_image)
+        self.active_image = self.theme.get("active_image", self.normal_image)
         self.disabled_image = self.theme.get("disabled_image", self.normal_image)
 
         self.hover_outline = self.theme.get("hover_outline", self.outline)
         self.hover_outline_color = self.theme.get("hover_outline_color", self.outline_color)
-        self.active_outline = self.theme.get("hover_outline", self.hover_outline)
-        self.active_outline_color = self.theme.get("hover_outline_color", self.hover_outline_color)
+        self.active_outline = self.theme.get("hover_outline", self.outline)
+        self.active_outline_color = self.theme.get("hover_outline_color", self.outline_color)
         self.disabled_outline = self.theme.get("disabled_outline", self.outline)
         self.disabled_outline_color = self.theme.get("disabled_outline_color", self.outline_color)
 
@@ -105,9 +105,9 @@ class Interactable(LayeredSprite):
                                                       self.rect.height/2 - self.hover_image.get_height()/2))
             self.hover_surface = self.SurfaceWithMask(hover_surface, create_mask=self.collide_on_vis)
                 
-        if self.active_background == self.hover_background and self.active_image == self.hover_image and  \
-                self.active_outline == self.hover_outline and self.active_outline_color == self.hover_outline_color:
-            self.active_surface = self.hover_surface
+        if self.active_background == self.background and self.active_image == self.normal_image and  \
+                self.active_outline == self.outline and self.active_outline_color == self.outline_color:
+            self.active_surface = self.normal_surface
         else:
             active_surface = pygame.Surface((self.rect.width, self.rect.height),pygame.SRCALPHA)
             self._draw_background_shape(active_surface, self.active_background, self.active_outline, self.active_outline_color)
