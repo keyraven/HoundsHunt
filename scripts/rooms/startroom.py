@@ -46,7 +46,8 @@ class StartRoom(room.Room):
         if event.type == CustomEvent.BUTTON_KEYUP:
             if event.sprite == self.start_button:
                 pygame.event.post(pygame.Event(CustomEvent.CHANGE_ROOM, {"room":"room1"}))
-            elif event.sprite == self.info_button:
-                pygame.event.post(pygame.Event(CustomEvent.CHANGE_ROOM, {"room":"info_room"}))
+                print("room1")
+            #elif event.sprite == self.info_button:
+            #    pygame.event.post(pygame.Event(CustomEvent.CHANGE_ROOM, {"room":"info_room"}))
 
         

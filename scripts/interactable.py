@@ -154,7 +154,7 @@ class Interactable(LayeredSprite):
     
         return self.normal_surface
 
-    def set_hover_state_from_pos(self, mouse_location:tuple) -> bool:
+    def set_hover_state_from_pos(self, mouse_location:tuple) -> bool:       
         if self.disabled:
             self.hover = False
             self.active = False
@@ -168,6 +168,7 @@ class Interactable(LayeredSprite):
             self.hover = False
             self.active = False
         return self.hover
+    
     
     def set_hover_state(self, hover_state):
         self.hover = hover_state

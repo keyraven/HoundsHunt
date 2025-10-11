@@ -115,7 +115,6 @@ class Game:
             except AttributeError:
                 pass
             
-
     def update_speak_theme(self, new_theme):
 
         if new_theme == "hound":
